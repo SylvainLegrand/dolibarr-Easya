@@ -649,3 +649,9 @@ ALTER TABLE llx_facture_fourn CHANGE COLUMN fk_mode_transport fk_transport_mode 
 
 ALTER TABLE llx_c_socialnetworks DROP INDEX idx_c_socialnetworks_code;
 ALTER TABLE llx_c_socialnetworks ADD UNIQUE INDEX idx_c_socialnetworks_code_entity (code, entity);
+
+-- Backport v16
+ALTER TABLE llx_product_attribute_value MODIFY COLUMN ref VARCHAR(180) NOT NULL;
+ALTER TABLE llx_product_attribute_value MODIFY COLUMN value VARCHAR(255) NOT NULL;
+ALTER TABLE llx_product_attribute_value ADD COLUMN position INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE llx_product_attribute CHANGE rang position INTEGER DEFAULT 0 NOT NULL;
