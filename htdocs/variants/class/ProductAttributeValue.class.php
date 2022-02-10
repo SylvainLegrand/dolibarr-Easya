@@ -143,7 +143,7 @@ class ProductAttributeValue extends CommonObjectLine
 
 		// Clean parameters
 		$this->fk_product_attribute = $this->fk_product_attribute > 0 ? $this->fk_product_attribute : 0;
-		$this->ref = strtoupper(trim($this->ref)); // Ref must be uppercase
+		$this->ref = dol_sanitizeFileName(dol_string_nospecial(strtoupper(trim($this->ref)))); // Ref must be uppercase
 		$this->value = trim($this->value);
 
 		// Check parameters
@@ -317,7 +317,7 @@ class ProductAttributeValue extends CommonObjectLine
 
 		// Clean parameters
 		$this->fk_product_attribute = $this->fk_product_attribute > 0 ? $this->fk_product_attribute : 0;
-		$this->ref = strtoupper(trim($this->ref)); // Ref must be uppercase
+		$this->ref = dol_sanitizeFileName(dol_string_nospecial(strtoupper(trim($this->ref)))); // Ref must be uppercase
 		$this->value = trim($this->value);
 
 		// Check parameters

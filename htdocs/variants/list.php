@@ -292,6 +292,7 @@ $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters, $object); // Note that $action and $object may have been modified by hook
 $sql .= $hookmanager->resPrint;
 
+$hasgroupby = true;
 $sql .= " GROUP BY ";
 foreach ($object->fields as $key => $val) {
 	$sql .= "t." . $key . ", ";
@@ -336,8 +337,12 @@ if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST)) {
 	$sqlforcount = preg_replace("/^SELECT[a-z0-9\._\s\(\),]+FROM/i", "SELECT COUNT(*) as nbtotalofrecords FROM", $sql);
 	$resql = $db->query($sqlforcount);
 	if ($resql) {
-		$objforcount = $db->fetch_object($resql);
-		$nbtotalofrecords = $objforcount->nbtotalofrecords;
+		if ($hasgroupby) {
+			$nbtotalofrecords = $db->num_rows($resql);
+		} else {
+			$objforcount = $db->fetch_object($resql);
+			$nbtotalofrecords = $objforcount->nbtotalofrecords;
+		}
 		if (($page * $limit) > $nbtotalofrecords) {    // if total of record found is smaller than page * limit, goto and load page 0
 			$page = 0;
 			$offset = 0;
