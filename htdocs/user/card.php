@@ -60,6 +60,9 @@ if (!empty($conf->categorie->enabled)) {
 if (!empty($conf->stock->enabled)) {
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 }
+if (!empty($conf->accounting->enabled)) {
+	require_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountingaccount.class.php';
+}
 
 $id = GETPOST('id', 'int');
 $action		= GETPOST('action', 'aZ09');
@@ -74,6 +77,8 @@ $dateemploymentend = dol_mktime(0, 0, 0, GETPOST('dateemploymentendmonth', 'int'
 $datestartvalidity = dol_mktime(0, 0, 0, GETPOST('datestartvaliditymonth', 'int'), GETPOST('datestartvalidityday', 'int'), GETPOST('datestartvalidityyear', 'int'));
 $dateendvalidity = dol_mktime(0, 0, 0, GETPOST('dateendvaliditymonth', 'int'), GETPOST('dateendvalidityday', 'int'), GETPOST('dateendvalidityyear', 'int'));
 $dateofbirth = dol_mktime(0, 0, 0, GETPOST('dateofbirthmonth', 'int'), GETPOST('dateofbirthday', 'int'), GETPOST('dateofbirthyear', 'int'));
+
+$accountancy_code_general = GETPOST('accountancy_code_general', 'alpha');
 
 // Define value to know what current user can do on users
 $canadduser = (!empty($user->admin) || $user->rights->user->user->creer);
@@ -255,7 +260,6 @@ if (empty($reshook)) {
 			$object->email = preg_replace('/\s+/', '', GETPOST("email", 'alphanohtml'));
 			$object->job = GETPOST("job", 'alphanohtml');
 			$object->signature = GETPOST("signature", 'restricthtml');
-			$object->accountancy_code = GETPOST("accountancy_code", 'alphanohtml');
 			$object->note = GETPOST("note", 'restricthtml');
 			$object->note_private = GETPOST("note", 'restricthtml');
 			$object->ldap_sid = GETPOST("ldap_sid", 'alphanohtml');
@@ -280,6 +284,16 @@ if (empty($reshook)) {
 			$object->datestartvalidity = $datestartvalidity;
 			$object->dateendvalidity = $dateendvalidity;
 			$object->birth = $dateofbirth;
+
+			$object->accountancy_code_general = GETPOST("accountancy_code_general", 'alphanohtml');
+			$object->accountancy_code_subledger = GETPOST("accountancy_code_subledger", 'alphanohtml');
+
+			// Only accountancy_code_general is a list of accounts
+			if (empty($accountancy_code_general) || $accountancy_code_general == '-1') {
+				$object->accountancy_code_general = '';
+			} else {
+				$object->accountancy_code_general = $accountancy_code_general;
+			}
 
 			$object->fk_warehouse = GETPOST('fk_warehouse', 'int');
 
@@ -416,7 +430,6 @@ if (empty($reshook)) {
 				$object->email = preg_replace('/\s+/', '', GETPOST("email", 'alphanohtml'));
 				$object->job = GETPOST("job", 'alphanohtml');
 				$object->signature = GETPOST("signature", 'restricthtml');
-				$object->accountancy_code = GETPOST("accountancy_code", 'alphanohtml');
 				$object->openid = GETPOST("openid", 'alphanohtml');
 				$object->fk_user = GETPOST("fk_user", 'int') > 0 ? GETPOST("fk_user", 'int') : 0;
 				$object->fk_user_expense_validator = GETPOST("fk_user_expense_validator", 'int') > 0 ? GETPOST("fk_user_expense_validator", 'int') : 0;
@@ -440,6 +453,16 @@ if (empty($reshook)) {
 				$object->datestartvalidity = $datestartvalidity;
 				$object->dateendvalidity = $dateendvalidity;
 				$object->birth = $dateofbirth;
+
+				$object->accountancy_code_general = GETPOST("accountancy_code_general", 'alphanohtml');
+				$object->accountancy_code_subledger = GETPOST("accountancy_code_subledger", 'alphanohtml');
+
+				// Only accountancy_code_general is a list of accounts
+				if (empty($accountancy_code_general) || $accountancy_code_general == '-1') {
+					$object->accountancy_code_general = '';
+				} else {
+					$object->accountancy_code_general = $accountancy_code_general;
+				}
 
 				if (!empty($conf->stock->enabled)) {
 					$object->fk_warehouse = GETPOST('fk_warehouse', 'int');
@@ -699,6 +722,12 @@ $formadmin = new FormAdmin($db);
 $formfile = new FormFile($db);
 if (!empty($conf->stock->enabled)) {
 	$formproduct = new FormProduct($db);
+}
+if (!empty($conf->accounting->enabled)) {
+	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formaccounting.class.php';
+}
+if (!empty($conf->accounting->enabled)) {
+	$formaccounting = new FormAccounting($db);
 }
 
 llxHeader('', $langs->trans("UserCard"));
@@ -1115,14 +1144,6 @@ if ($action == 'create' || $action == 'adduserldap') {
 		}
 	}
 
-	// Accountancy code
-	if (!empty($conf->accounting->enabled)) {
-		print '<tr><td>'.$langs->trans("AccountancyCode").'</td>';
-		print '<td>';
-		print '<input type="text" name="accountancy_code" value="'.dol_escape_htmltag(GETPOST('accountancy_code', 'alphanohtml')).'">';
-		print '</td></tr>';
-	}
-
 	// User color
 	if (!empty($conf->agenda->enabled)) {
 		print '<tr><td>'.$langs->trans("ColorUser").'</td>';
@@ -1258,6 +1279,24 @@ if ($action == 'create' || $action == 'adduserldap') {
 	print $form->selectDate($dateofbirth, 'dateofbirth', 0, 0, 1, 'createuser', 1, 0, 0, '', 0, '', '', 1, '', '', 'tzserver');
 	print '</td>';
 	print "</tr>\n";
+
+	// Accountancy code
+	if (!empty($conf->accounting->enabled)) {
+		print '</table><hr>';
+		print '<!-- accountancy codes -->'."\n";
+		print '<table class="border centpercent">';
+
+		print '<tr><td>'.$langs->trans("AccountancyCode").'</td>';
+		print '<td class="titlefieldcreate">';
+		$accountancy_code_general = (GETPOSTISSET('accountancy_code_general') ? GETPOST('accountancy_code_general', 'alpha') : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT);
+		print $formaccounting->select_account($accountancy_code_general, 'accountancy_code_general', 1, null, 1, 1, 'minwidth150 maxwidth300', 1);
+		print '</td></tr>';
+
+		print '<tr><td>'.$langs->trans("UserAccountancyCode").'</td>';
+		print '<td>';
+		print '<input type="text" name="accountancy_code_subledger" value="'.dol_escape_htmltag(GETPOST('accountancy_code_subledger', 'alphanohtml')).'">';
+		print '</td></tr>';
+	}
 
 	print "</table>\n";
 
@@ -1572,7 +1611,10 @@ if ($action == 'create' || $action == 'adduserldap') {
 			// Accountancy code
 			if (!empty($conf->accounting->enabled)) {
 				print '<tr><td>'.$langs->trans("AccountancyCode").'</td>';
-				print '<td>'.$object->accountancy_code.'</td></tr>';
+				print '<td>'.$object->accountancy_code_general.'</td></tr>';
+
+				print '<tr><td>'.$langs->trans("UserAccountancyCode").'</td>';
+				print '<td>'.$object->accountancy_code_subledger.'</td></tr>';
 			}
 
 			print '</table>';
@@ -2459,21 +2501,6 @@ if ($action == 'create' || $action == 'adduserldap') {
 
 			print '</table><hr><table class="border centpercent">';
 
-			// Accountancy code
-			if (!empty($conf->accounting->enabled)) {
-				print "<tr>";
-				print '<td class="titlefieldcreate">'.$langs->trans("AccountancyCode").'</td>';
-				print '<td>';
-				if ($caneditfield) {
-					print '<input type="text" class="flat maxwidth300" name="accountancy_code" value="'.$object->accountancy_code.'">';
-				} else {
-					print '<input type="hidden" name="accountancy_code" value="'.$object->accountancy_code.'">';
-					print $object->accountancy_code;
-				}
-				print '</td>';
-				print "</tr>";
-			}
-
 			// User color
 			if (!empty($conf->agenda->enabled)) {
 				print '<tr><td class="titlefieldcreate">'.$langs->trans("ColorUser").'</td>';
@@ -2718,6 +2745,38 @@ if ($action == 'create' || $action == 'adduserldap') {
 			}
 			print '</td>';
 			print "</tr>\n";
+
+			// Accountancy code
+			if (!empty($conf->accounting->enabled)) {
+				print '</table><hr>';
+				print '<!-- accountancy codes -->'."\n";
+				print '<table class="border centpercent">';
+
+				print "<tr>";
+				print '<td class="titlefieldcreate">'.$langs->trans("AccountancyCode").'</td>';
+				print '<td>';
+				if ($caneditfield) {
+					print $formaccounting->select_account($object->accountancy_code_general, 'accountancy_code_general', 1, '', 1, 1, 'minwidth150 maxwidth300');
+				} else {
+					print '<input type="hidden" name="accountancy_code_general" value="'.$object->accountancy_code_general.'">';
+					print $object->accountancy_code_general;
+				}
+				print '</td>';
+				print "</tr>";
+
+				print "<tr>";
+				print '<td class="titlefieldcreate">'.$langs->trans("UserAccountancyCode").'</td>';
+				print '<td>';
+				if ($caneditfield) {
+					print '<input type="text" class="flat maxwidth300" name="accountancy_code_subledger" value="'.$object->accountancy_code_subledger.'">';
+
+				} else {
+					print '<input type="hidden" name="accountancy_code_subledger" value="'.$object->accountancy_code_subledger.'">';
+					print $object->accountancy_code_subledger;
+				}
+				print '</td>';
+				print "</tr>";
+			}
 
 			print '</table>';
 

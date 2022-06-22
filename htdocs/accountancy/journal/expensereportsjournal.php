@@ -100,7 +100,7 @@ if (!GETPOSTISSET('date_startmonth') && (empty($date_start) || empty($date_end))
 
 $sql = "SELECT er.rowid, er.ref, er.date_debut as de,";
 $sql .= " erd.rowid as erdid, erd.comments, erd.total_ht, erd.total_tva, erd.total_localtax1, erd.total_localtax2, erd.tva_tx, erd.total_ttc, erd.fk_code_ventilation, erd.vat_src_code, ";
-$sql .= " u.rowid as uid, u.firstname, u.lastname, u.accountancy_code as user_accountancy_account,";
+$sql .= " u.rowid as uid, u.firstname, u.lastname, u.accountancy_code_general as user_accountancy_account_general, u.accountancy_code_subledger as user_accountancy_account_subledger,";
 $sql .= " f.accountancy_code, aa.rowid as fk_compte, aa.account_number as compte, aa.label as label_compte";
 $sql .= " FROM ".MAIN_DB_PREFIX."expensereport_det as erd";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_type_fees as f ON f.id = erd.fk_c_type_fees";
@@ -149,7 +149,7 @@ if ($result) {
 		$obj = $db->fetch_object($result);
 
 		// Controls
-		$compta_user = (!empty($obj->user_accountancy_account)) ? $obj->user_accountancy_account : $account_salary;
+		$compta_user_subledger = (!empty($obj->user_accountancy_account_subledger)) ? $obj->user_accountancy_account_subledger : '';
 		$compta_fees = $obj->compte;
 
 		$vatdata = getTaxesFromId($obj->tva_tx.($obj->vat_src_code ? ' ('.$obj->vat_src_code.')' : ''), $mysoc, $mysoc, 0);
@@ -168,8 +168,8 @@ if ($result) {
 		$taber[$obj->rowid]["fk_expensereportdet"] = $obj->erdid;
 
 		// Avoid warnings
-		if (!isset($tabttc[$obj->rowid][$compta_user])) {
-			$tabttc[$obj->rowid][$compta_user] = 0;
+		if (!isset($tabttc[$obj->rowid][$compta_user_subledger])) {
+			$tabttc[$obj->rowid][$compta_user_subledger] = 0;
 		}
 		if (!isset($tabht[$obj->rowid][$compta_fees])) {
 			$tabht[$obj->rowid][$compta_fees] = 0;
@@ -184,7 +184,7 @@ if ($result) {
 			$tablocaltax2[$obj->rowid][$compta_localtax2] = 0;
 		}
 
-		$tabttc[$obj->rowid][$compta_user] += $obj->total_ttc;
+		$tabttc[$obj->rowid][$compta_user_subledger] += $obj->total_ttc;
 		$tabht[$obj->rowid][$compta_fees] += $obj->total_ht;
 		$tabtva[$obj->rowid][$compta_tva] += $obj->total_tva;
 		$tablocaltax1[$obj->rowid][$compta_localtax1] += $obj->total_localtax1;
@@ -192,7 +192,7 @@ if ($result) {
 		$tabuser[$obj->rowid] = array(
 				'id' => $obj->uid,
 				'name' => dolGetFirstLastname($obj->firstname, $obj->lastname),
-				'user_accountancy_code' => $obj->user_accountancy_account
+				'user_accountancy_code_subledger' => $obj->user_accountancy_account_subledger
 		);
 
 		$i++;
@@ -206,9 +206,6 @@ if ($action == 'writebookkeeping') {
 	$now = dol_now();
 	$error = 0;
 
-	$accountingaccountexpense = new AccountingAccount($db);
-	$accountingaccountexpense->fetch(null, $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT, true);
-
 	foreach ($taber as $key => $val) {		// Loop on each expense report
 		$errorforline = 0;
 
@@ -216,6 +213,10 @@ if ($action == 'writebookkeeping') {
 		$totaldebit = 0;
 
 		$db->begin();
+
+		$salariesAccountancyCodeGeneral = (!empty($tabuser[$key]['user_accountancy_code_general'])) ? $tabuser[$key]['user_accountancy_code_general'] : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+		$salariesaccountingaccountstatic = new AccountingAccount($db);
+		$salariesaccountingaccountstatic->fetch(null, $salariesAccountancyCodeGeneral, true);
 
 		// Thirdparty
 		if (!$errorforline) {
@@ -229,11 +230,11 @@ if ($action == 'writebookkeeping') {
 					$bookkeeping->fk_doc = $key;
 					$bookkeeping->fk_docdet = $val["fk_expensereportdet"];
 
-					$bookkeeping->subledger_account = $tabuser[$key]['user_accountancy_code'];
+					$bookkeeping->subledger_account = $tabuser[$key]['user_accountancy_code_subledger'];
 					$bookkeeping->subledger_label = $tabuser[$key]['name'];
 
-					$bookkeeping->numero_compte = $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
-					$bookkeeping->label_compte = $accountingaccountexpense->label;
+					$bookkeeping->numero_compte = $salariesAccountancyCodeGeneral;
+					$bookkeeping->label_compte = $salariesaccountingaccountstatic->label;
 
 					$bookkeeping->label_operation = $tabuser[$key]['name'];
 					$bookkeeping->montant = $mt;

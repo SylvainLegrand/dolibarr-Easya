@@ -689,3 +689,7 @@ ALTER TABLE llx_inventory ADD COLUMN categories_product VARCHAR(255) DEFAULT NUL
 
 -- Add input reason on invoice
 ALTER TABLE llx_facture ADD COLUMN fk_input_reason integer NULL DEFAULT NULL AFTER last_main_doc;
+
+-- Add accountancy code general on employee
+ALTER TABLE llx_user CHANGE COLUMN accountancy_code accountancy_code_subledger varchar(32) DEFAULT NULL;
+ALTER TABLE llx_user ADD COLUMN accountancy_code_general varchar(32) DEFAULT NULL AFTER fk_barcode_type;

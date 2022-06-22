@@ -127,7 +127,7 @@ if (!empty($conf->global->MAIN_COMPANY_PERENTITY_SHARED)) {
 	$sql .= " soc.code_compta,";
 	$sql .= " soc.code_compta_fournisseur,";
 }
-$sql .= " u.accountancy_code, u.rowid as userid, u.lastname as lastname, u.firstname as firstname, u.email as useremail, u.statut as userstatus,";
+$sql .= " u.accountancy_code_general, u.accountancy_code_subledger, u.rowid as userid, u.lastname as lastname, u.firstname as firstname, u.email as useremail, u.statut as userstatus,";
 $sql .= " bu2.type as typeop_user,";
 $sql .= " bu3.type as typeop_payment, bu4.type as typeop_payment_supplier";
 $sql .= " FROM ".MAIN_DB_PREFIX."bank as b";
@@ -568,9 +568,6 @@ if (!$error && $action == 'writebookkeeping') {
 	$accountingaccountsupplier = new AccountingAccount($db);
 	$accountingaccountsupplier->fetch(null, $conf->global->ACCOUNTING_ACCOUNT_SUPPLIER, true);
 
-	$accountingaccountpayment = new AccountingAccount($db);
-	$accountingaccountpayment->fetch(null, $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT, true);
-
 	$accountingaccountsuspense = new AccountingAccount($db);
 	$accountingaccountsuspense->fetch(null, $conf->global->ACCOUNTING_ACCOUNT_SUSPENSE, true);
 
@@ -701,15 +698,23 @@ if (!$error && $action == 'writebookkeeping') {
 							$bookkeeping->numero_compte = $conf->global->ACCOUNTING_ACCOUNT_SUPPLIER;
 							$bookkeeping->label_compte = $accountingaccountsupplier->label;
 						} elseif ($tabtype[$key] == 'payment_expensereport') {
-							$bookkeeping->subledger_account = $tabuser[$key]['accountancy_code'];
+							$salariesAccountancyCodeGeneral = (!empty($tabuser[$key]['accountancy_code_general'])) ? $tabuser[$key]['accountancy_code_general'] : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+							$salariesaccountingaccountstatic = new AccountingAccount($db);
+							$salariesaccountingaccountstatic->fetch(null, $salariesAccountancyCodeGeneral, true);
+
+							$bookkeeping->subledger_account = $tabuser[$key]['accountancy_code_subledger'];
 							$bookkeeping->subledger_label = $tabuser[$key]['name'];
-							$bookkeeping->numero_compte = $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
-							$bookkeeping->label_compte = $accountingaccountpayment->label;
+							$bookkeeping->numero_compte = $salariesAccountancyCodeGeneral;
+							$bookkeeping->label_compte = $salariesaccountingaccountstatic->label;
 						} elseif ($tabtype[$key] == 'payment_salary') {
-							$bookkeeping->subledger_account = $tabuser[$key]['accountancy_code'];
+							$salariesAccountancyCodeGeneral = (!empty($tabuser[$key]['accountancy_code_general'])) ? $tabuser[$key]['accountancy_code_general'] : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+							$salariesaccountingaccountstatic = new AccountingAccount($db);
+							$salariesaccountingaccountstatic->fetch(null, $salariesAccountancyCodeGeneral, true);
+
+							$bookkeeping->subledger_account = $tabuser[$key]['accountancy_code_subledger'];
 							$bookkeeping->subledger_label = $tabuser[$key]['name'];
-							$bookkeeping->numero_compte = $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
-							$bookkeeping->label_compte = $accountingaccountpayment->label;
+							$bookkeeping->numero_compte = $salariesAccountancyCodeGeneral;
+							$bookkeeping->label_compte = $salariesaccountingaccountstatic->label;
 						} elseif (in_array($tabtype[$key], array('sc', 'payment_sc'))) {   // If payment is payment of social contribution
 							$bookkeeping->subledger_account = '';
 							$bookkeeping->subledger_label = '';
@@ -959,9 +964,15 @@ if ($action == 'exportcsv') {		// ISO and not UTF8 !
 					} elseif ($tabtype[$key] == 'payment') {
 						print '"'.$conf->global->ACCOUNTING_ACCOUNT_CUSTOMER.'"'.$sep;
 					} elseif ($tabtype[$key] == 'payment_expensereport') {
-						print '"'.$conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT.'"'.$sep;
+						$salariesAccountancyCodeGeneral = (!empty($tabuser[$key]['accountancy_code_general'])) ? $tabuser[$key]['accountancy_code_general'] : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+						$salariesaccountingaccountstatic = new AccountingAccount($db);
+						$account_ledger = $salariesaccountingaccountstatic->fetch(null, $salariesAccountancyCodeGeneral, true);
+						print '"'.$account_ledger.'"'.$sep;
 					} elseif ($tabtype[$key] == 'payment_salary') {
-						print '"'.$conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT.'"'.$sep;
+						$salariesAccountancyCodeGeneral = (!empty($tabuser[$key]['accountancy_code_general'])) ? $tabuser[$key]['accountancy_code_general'] : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+						$salariesaccountingaccountstatic = new AccountingAccount($db);
+						$account_ledger = $salariesaccountingaccountstatic->fetch(null, $salariesAccountancyCodeGeneral, true);
+						print '"'.$account_ledger.'"'.$sep;
 					} else {
 						print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 					}
@@ -1204,10 +1215,14 @@ if (empty($action) || $action == 'view') {
 						$account_ledger = $conf->global->ACCOUNTING_ACCOUNT_SUPPLIER;
 					}
 					if ($tabtype[$key] == 'payment_expensereport') {
-						$account_ledger = $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+						$salariesAccountancyCodeGeneral = (!empty($tabuser[$key]['accountancy_code_general'])) ? $tabuser[$key]['accountancy_code_general'] : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+						$salariesaccountingaccountstatic = new AccountingAccount($db);
+						$account_ledger = $salariesaccountingaccountstatic->fetch(null, $salariesAccountancyCodeGeneral, true);
 					}
 					if ($tabtype[$key] == 'payment_salary') {
-						$account_ledger = $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+						$salariesAccountancyCodeGeneral = (!empty($tabuser[$key]['accountancy_code_general'])) ? $tabuser[$key]['accountancy_code_general'] : $conf->global->SALARIES_ACCOUNTING_ACCOUNT_PAYMENT;
+						$salariesaccountingaccountstatic = new AccountingAccount($db);
+						$account_ledger = $salariesaccountingaccountstatic->fetch(null, $salariesAccountancyCodeGeneral, true);
 					}
 					if ($tabtype[$key] == 'payment_vat') {
 						$account_ledger = $conf->global->ACCOUNTING_VAT_PAY_ACCOUNT;

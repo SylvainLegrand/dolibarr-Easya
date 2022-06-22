@@ -1,7 +1,8 @@
 -- ============================================================================
--- Copyright (C) 2001-2003 Rodolphe Quiedeville <rodolphe@quiedeville.org>
--- Copyright (C) 2006-2013 Laurent Destailleur  <eldy@users.sourceforge.net>
--- Copyright (C) 2007-2013 Regis Houssin        <regis.houssin@inodbox.com>
+-- Copyright (C) 2001-2003  Rodolphe Quiedeville <rodolphe@quiedeville.org>
+-- Copyright (C) 2006-2013  Laurent Destailleur  <eldy@users.sourceforge.net>
+-- Copyright (C) 2007-2013  Regis Houssin        <regis.houssin@inodbox.com>
+-- Copyright (C) 2022       Alexandre Spangaro   <aspangaro@open-dsi.fr>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -94,7 +95,8 @@ create table llx_user
   color				varchar(6),
   barcode			varchar(255) DEFAULT NULL,
   fk_barcode_type	integer      DEFAULT 0,
-  accountancy_code  varchar(32) NULL,
+  accountancy_code_general    varchar(32) NULL,
+  accountancy_code_subledger  varchar(32) NULL,
   nb_holiday		integer      DEFAULT 0,
   thm				double(24,8),
   tjm				double(24,8),
