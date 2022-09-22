@@ -687,8 +687,8 @@ if ($action == 'create') {    // Create. Seems to no be used
 				$shipment->fetch($object->origin_id);
 
 				// Show links to link elements
-				//$linktoelem = $form->showLinkToObjectBlock($object, null, array('order'));
-				$somethingshown = $form->showLinkedObjectBlock($object, '');
+				$linktoelem = $form->showLinkToObjectBlock($object, null, array());
+				$somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
 			}
 
 

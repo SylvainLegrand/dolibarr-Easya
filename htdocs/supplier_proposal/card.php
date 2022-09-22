@@ -1943,7 +1943,7 @@ if ($action == 'create') {
 
 
 		// Show links to link elements
-		$linktoelem = $form->showLinkToObjectBlock($object, null, array('supplier_proposal'));
+		$linktoelem = $form->showLinkToObjectBlock($object, null, array());
 		$somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
 
 
