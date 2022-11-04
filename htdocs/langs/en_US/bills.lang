@@ -158,6 +158,7 @@ ErrorInvoiceOfThisTypeMustBePositive=Error, this type of invoice must have an am
 ErrorCantCancelIfReplacementInvoiceNotValidated=Error, can't cancel an invoice that has been replaced by another invoice that is still in draft status
 ErrorThisPartOrAnotherIsAlreadyUsedSoDiscountSerieCantBeRemoved=This part or another is already used so discount series cannot be removed.
 ErrorInvoiceIsNotLastOfSameType=Error: The date of invoice %s  is %s. It must be posterior or equal to last date for same type invoices (%s). Please change the invoice date.
+ErrorInvoiceIsNotInFiscalPeriod=It is not possible to validate an invoice outside the currently open fiscal period (from %s to %s). It is necessary to check and change the date of the invoice in order to validate this invoice.
 BillFrom=From
 BillTo=To
 ActionsOnBill=Actions on invoice

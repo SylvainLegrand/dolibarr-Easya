@@ -3154,6 +3154,16 @@ class Facture extends CommonInvoice
 		}
 		$this->newref = dol_sanitizeFileName($num);
 
+		// Check if the invoice date is in the fiscal period
+		if (!empty($conf->global->INVOICE_CHECK_FISCAL_PERIOD_DATE)) {
+			require_once DOL_DOCUMENT_ROOT . '/core/lib/accounting.lib.php';
+			$fiscal_period = getDefaultDatesForTransfer();
+			if ($this->date < $fiscal_period['date_start'] || $fiscal_period['date_end'] < $this->date) {
+				$this->error = $langs->transnoentities("ErrorInvoiceIsNotInFiscalPeriod", dol_print_date($fiscal_period['date_start'], 'day'), dol_print_date($fiscal_period['date_end'], 'day'));
+				return -1;
+			}
+		}
+
 		if ($num) {
 			$this->update_price(1);
 
