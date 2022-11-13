@@ -124,3 +124,5 @@ ValidatorIsSupervisorByDefault=Par défaut, le valideur est le responsable hiér
 UserPersonalEmail=Email personnel
 UserPersonalMobile=Téléphone portable personnel
 WarningNotLangOfInterface=Attention, c'est la langue principale parlée par l'utilisateur, pas la langue de l'interface qu'il a choisi de voir. Pour changer la langue de l'interface visible par cet utilisateur, allez sur l'onglet %s
+ShowAllPerms=Afficher toutes les lignes des permissions
+HideAllPerms=Cacher toutes les lignes des permissions
