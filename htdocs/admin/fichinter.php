@@ -210,6 +210,19 @@ if ($action == 'updateMask') {
 	} else {
 		setEventMessages($langs->trans("Error"), null, 'errors');
 	}
+} elseif ($action == 'set_FICHINTER_CURRENT_TIME_ON_NEW_LINE') {
+	$val = GETPOST('FICHINTER_CURRENT_TIME_ON_NEW_LINE', 'alpha');
+	$res = dolibarr_set_const($db, "FICHINTER_CURRENT_TIME_ON_NEW_LINE", ($val == 'on' ? 1 : 0), 'bool', 0, '', $conf->entity);
+
+	if (!($res > 0)) {
+		$error++;
+	}
+
+	if (!$error) {
+		setEventMessages($langs->trans("SetupSaved"), null, 'mesgs');
+	} else {
+		setEventMessages($langs->trans("Error"), null, 'errors');
+	}
 }
 
 
@@ -591,6 +604,24 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</td>';
 print '</tr>';
 print '</form>';
+// proposes the current time on the new lines
+if (empty($conf->global->FICHINTER_DATE_WITHOUT_HOUR)) {
+	print '<form action="'.$_SERVER["PHP_SELF"].'" method="post">';
+	print '<input type="hidden" name="token" value="'.newToken().'">';
+	print '<input type="hidden" name="action" value="set_FICHINTER_CURRENT_TIME_ON_NEW_LINE">';
+	print '<tr class="oddeven">';
+	print '<td>';
+	print $langs->trans("CurrentTimeOnNewLinesOnFichinter");
+	print '</td>';
+	print '<td class="center">';
+	print '<input type="checkbox" name="FICHINTER_CURRENT_TIME_ON_NEW_LINE"'.($conf->global->FICHINTER_CURRENT_TIME_ON_NEW_LINE ? ' checked' : '').'>';
+	print '</td>';
+	print '<td class="right">';
+	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+	print '</td>';
+	print '</tr>';
+	print '</form>';
+}
 
 print '</table>';
 print '</div>';
