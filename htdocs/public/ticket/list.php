@@ -193,7 +193,8 @@ $arrayofcss = array('/ticket/css/styles.css.php');
 llxHeaderTicket($langs->trans("Tickets"), "", 0, 0, $arrayofjs, $arrayofcss);
 
 if ($action == "view_ticketlist") {
-	print '<main class="ticketpublicarealist ticketlargemargin">';
+	print '<main class="ticketlargemargin">';
+	print '<div class="ticketpublicarealist">';
 
 	print '<br>';
 	if ($display_ticket_list) {
@@ -717,10 +718,9 @@ if ($action == "view_ticketlist") {
 	} else {
 		print '<div class="error">Not Allowed<br><a href="'.$_SERVER['PHP_SELF'].'?track_id='.$object->track_id.'">'.$langs->trans('Back').'</a></div>';
 	}
-
-	print '</div>';
 } else {
-	print '<main class="ticketpublicarea ticketlargemargin">';
+	print '<main class="ticketlargemargin">';
+	print '<div class="ticketpublicarealist">';
 
 	print '<p class="center opacitymedium">'.$langs->trans("TicketPublicMsgViewLogIn").'</p>';
 	print '<br>';
@@ -747,9 +747,9 @@ if ($action == "view_ticketlist") {
 
 	print "</form>\n";
 	print "</div>\n";
-
-	print "</div>";
 }
+
+print "</div>";
 print "</main>";
 
 // End of page
