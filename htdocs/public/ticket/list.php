@@ -192,10 +192,8 @@ $arrayofcss = array('/ticket/css/styles.css.php');
 
 llxHeaderTicket($langs->trans("Tickets"), "", 0, 0, $arrayofjs, $arrayofcss);
 
-
-
 if ($action == "view_ticketlist") {
-	print '<div class="ticketpublicarealist">';
+	print '<main class="ticketpublicarealist ticketlargemargin">';
 
 	print '<br>';
 	if ($display_ticket_list) {
@@ -722,7 +720,7 @@ if ($action == "view_ticketlist") {
 
 	print '</div>';
 } else {
-	print '<div class="ticketpublicarea">';
+	print '<main class="ticketpublicarea ticketlargemargin">';
 
 	print '<p class="center opacitymedium">'.$langs->trans("TicketPublicMsgViewLogIn").'</p>';
 	print '<br>';
@@ -752,9 +750,12 @@ if ($action == "view_ticketlist") {
 
 	print "</div>";
 }
+print "</main>";
 
 // End of page
-htmlPrintOnlinePaymentFooter($mysoc, $langs, 0, $suffix, $object);
+print '<footer class="center">';
+htmlPrintOnlineCompanyFooter($mysoc, $langs);
+print '</footer>';
 
 llxFooter('', 'public');
 
