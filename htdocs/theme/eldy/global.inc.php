@@ -3379,10 +3379,6 @@ td.border, div.tagtable div div.border {
 	border-bottom: 1px solid rgb(<?php echo $colortopbordertitle1 ?>);
 }
 
-
-.fichehalfright table.noborder {
-	margin: 0px 0px 0px 0px;
-}
 table.liste, table.noborder, table.formdoc, div.noborder {
 	width: 100%;
 	border-collapse: separate !important;
