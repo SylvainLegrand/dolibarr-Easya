@@ -176,7 +176,7 @@ $arrayofcss = array('/ticket/css/styles.css.php');
 llxHeaderTicket($langs->trans("Tickets"), "", 0, 0, $arrayofjs, $arrayofcss);
 
 print '<main class="ticketlargemargin">';
-print '<div class="ticketpublicarea">';
+print '<div class="ticketpublicarealist">';
 
 if ($action == "view_ticketlist") {
 	print '<br>';
