@@ -371,7 +371,25 @@ if ($nolinesbefore) {
 		if ($seller->tva_assuj == "0") {
 			echo '<input type="hidden" name="tva_tx" id="tva_tx" value="0">'.vatrate(0, true);
 		} else {
-			echo $form->load_tva('tva_tx', (GETPOSTISSET("tva_tx") ? GETPOST("tva_tx", 'alpha', 2) : -1), $seller, $buyer, 0, 0, '', false, 1);
+			// echo $form->load_tva('tva_tx', (GETPOSTISSET("tva_tx") ? GETPOST("tva_tx", 'alpha', 2) : -1), $seller, $buyer, 0, 0, '', false, 1);
+			$state_id = $object->thirdparty->state_id;
+
+			$sql = "SELECT d.rowid, t.taux as vat_default";
+			$sql .= " FROM ".MAIN_DB_PREFIX."c_departements as d";
+			$sql .= " ,".MAIN_DB_PREFIX."c_tva as t";
+			$sql .= " WHERE d.fk_tva = t.rowid";
+			$sql .= " AND d.rowid = ".((int) $state_id);
+
+			$resql = $this->db->query($sql);
+			if ($resql) {
+				if ($this->db->num_rows($resql)) {
+					$objvat = $this->db->fetch_object($resql);
+				}
+			}
+
+			$vat_default = GETPOSTISSET("tva_tx") ? GETPOST("tva_tx", 'alpha', 2) : $objvat->vat_default;
+			echo $form->load_tva('tva_tx', $vat_default, $seller, $buyer, 0, 0, '', false, 1);
+
 		}
 		?>
 	</td>

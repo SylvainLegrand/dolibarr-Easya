@@ -753,3 +753,6 @@ DELETE FROM llx_const WHERE name = "MAIN_SEARCH_CATEGORY_CUSTOMER_ON_LISTS";
 
 -- Make sell-by or eat-by date mandatory
 ALTER TABLE llx_product ADD COLUMN sell_or_eat_by_mandatory tinyint DEFAULT 0 NOT NULL AFTER tobatch;
+
+-- Define VAT rate by department
+ALTER TABLE llx_c_departements ADD COLUMN fk_tva integer DEFAULT NULL AFTER nom;
