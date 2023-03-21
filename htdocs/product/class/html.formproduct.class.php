@@ -657,8 +657,8 @@ class FormProduct
 			if (array_key_exists($productId, $this->cache_lot)) {
 				foreach ($this->cache_lot[$productId] as $id => $arraytypes) {
 					if (empty($fk_entrepot) || $fk_entrepot == $arraytypes['entrepot_id']) {
-						$label = $arraytypes['entrepot_label'] . ' - ';
-						$label .= $arraytypes['batch'];
+						$label = $arraytypes['entrepot_label'];
+						$label .= ' - ' . dol_print_date($arraytypes['sellby'], 'day');
 						$label .=  ' - ' . $arraytypes['qty'];
 						$out .= '<option data-warehouse="'.dol_escape_htmltag($label).'" value="'.dol_escape_htmltag($arraytypes['batch']).'">' . $label . '</option>';
 					}
