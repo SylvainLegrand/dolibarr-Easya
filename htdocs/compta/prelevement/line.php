@@ -31,6 +31,8 @@ require_once DOL_DOCUMENT_ROOT.'/compta/prelevement/class/ligneprelevement.class
 require_once DOL_DOCUMENT_ROOT.'/compta/prelevement/class/rejetprelevement.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/paiement/class/paiement.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
+require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
 
 // Load translation files required by the page
 $langs->loadlangs(array('banks', 'categories', 'bills', 'withdrawals'));
@@ -116,7 +118,7 @@ if ($action == 'confirm_rejet') {
  * View
  */
 
-$invoicestatic = new Facture($db);
+//$invoicestatic = new Facture($db);
 
 $title = $langs->trans("WithdrawalsLine");
 if ($type == 'bank-transfer') {
@@ -300,6 +302,8 @@ if ($id) {
 
 		$total = 0;
 
+		if ($type == 'bank-transfer')	$invoicestatic = new FactureFournisseur($db);
+		else							$invoicestatic = new Facture($db);
 		while ($i < min($num, $conf->liste_limit)) {
 			$obj = $db->fetch_object($result);
 
@@ -322,7 +326,7 @@ if ($id) {
 
 			print '<td class="right">';
 			$invoicestatic->fetch($obj->facid);
-			print $invoicestatic->getLibStatut(5);
+			print $invoicestatic->getLibStatut(5, $invoicestatic->getSommePaiement());
 			print "</td>\n";
 
 			print "</tr>\n";

@@ -106,7 +106,7 @@ if (empty($reshook)) {
 				$newtype = 'bank-transfer';
 			}
 
-			$result = $object->demande_prelevement($user, price2num(GETPOST('withdraw_request_amount', 'alpha')), $newtype, $sourcetype);
+			$result = $object->demande_prelevement($user, price2num(GETPOST('withdraw_request_amount', 'alpha')), $newtype, $sourcetype, GETPOST('iban', 'int'));
 			if ($result > 0) {
 				$db->commit();
 
@@ -475,15 +475,44 @@ if ($object->id > 0) {
 	print '<tr><td>'.$langs->trans($title).'</td><td colspan="3">';
 
 	$bac = new CompanyBankAccount($db);
-	$bac->fetch(0, $object->thirdparty->id);
+//	$bac->fetch(0, $object->thirdparty->id);
 
-	print $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
-	if (!empty($bac->iban)) {
-		if ($bac->verif() <= 0) {
-			print img_warning('Error on default bank number for IBAN : '.$bac->error_message);
+//	print $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
+//	if (!empty($bac->iban)) {
+//		if ($bac->verif() <= 0) {
+//			print img_warning('Error on default bank number for IBAN : '.$bac->error_message);
+//		}
+//	} else {
+//		print img_warning($langs->trans("NoDefaultIBANFound"));
+//	}
+	$sqliban	= 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe_rib WHERE fk_soc = '.$object->thirdparty->id;
+	$resqliban	= $db->query($sqliban);
+	if ($resqliban) {
+		if ($resqliban) {
+			$numiban	= $db->num_rows($resqliban);
+			print '<form method = "POST" action = "'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&type='.$type.'">';
+			print '<input type = "hidden" name = "action" value = "setiban">';
+			print '<input type = "hidden" name = "token" value="'.newToken().'">';
+			if ($numiban > 0) {
+				print '<select class = "flat quatrevingtpercent" id = "selectiban" name = "iban" style = "cursor: pointer;">';
+				for ($i = 0; $i < $numiban; $i++) {
+					$objiban	= $db->fetch_object($resqliban);
+					$bac->fetch($objiban->rowid);
+					$labelbac	= $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
+					$selectediban = GETPOSTISSET('iban') ? GETPOST('iban', 'int') : (!empty($bac->default_rib) ? $objiban->rowid : '');
+					print '<option name = "selectiban" value = "'.$objiban->rowid.'"'.($selectediban == $objiban->rowid ? ' selected' : '').' >'.$labelbac.'</option>';
+				}
+				print '</select>';
+				print ajax_combobox('selectiban');
+				print '<input type = "submit" class = "button valignmiddle" value = "'.$langs->trans('Modify').'">';
+			}
+			else {
+				print img_warning($langs->trans('NoDefaultIBANFound'));
+			}
+			print '</form>';
 		}
-	} else {
-		print img_warning($langs->trans("NoDefaultIBANFound"));
+		else	dol_print_error($db);
+		$db->free($resqliban);
 	}
 
 	print '</td></tr>';
@@ -642,6 +671,7 @@ if ($object->id > 0) {
 				print '<input type="hidden" name="id" value="'.$object->id.'" />';
 				print '<input type="hidden" name="type" value="'.$type.'" />';
 				print '<input type="hidden" name="action" value="new" />';
+				print '<input type="hidden" name="iban" value="'.GETPOST('iban', 'int').'" />';
 				print '<label for="withdraw_request_amount">'.$langs->trans('BankTransferAmount').' </label>';
 				print '<input type="text" id="withdraw_request_amount" name="withdraw_request_amount" value="'.$remaintopaylesspendingdebit.'" size="9" />';
 				print '<input type="submit" class="butAction" value="'.$buttonlabel.'" />';

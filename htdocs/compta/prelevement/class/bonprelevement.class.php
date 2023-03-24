@@ -136,16 +136,17 @@ class BonPrelevement extends CommonObject
 	 * @param	string	$number bank 	account number
 	 * @param	string	$number_key 	number key of account number
 	 * @param	string	$type			'debit-order' or 'bank-transfer'
+	 * @param	int		$fk_soc_rib		id company rib to use
 	 * @return	int						>0 if OK, <0 if KO
 	 */
-	public function AddFacture($invoice_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $type = 'debit-order')
+	public function AddFacture($invoice_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $type = 'debit-order', $fk_soc_rib = '')
 	{
 		// phpcs:enable
 		$result = 0;
 		$line_id = 0;
 
 		// Add lines
-		$result = $this->addline($line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key);
+		$result = $this->addline($line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $fk_soc_rib);
 
 		if ($result == 0) {
 			if ($line_id > 0) {
@@ -192,9 +193,10 @@ class BonPrelevement extends CommonObject
 	 *	@param	string	$code_guichet 	code of bank's office
 	 *	@param	string	$number 		bank account number
 	 *	@param  string	$number_key 	number key of account number
+	 * @param	int		$fk_soc_rib		id company rib to use
 	 *	@return	int						>0 if OK, <0 if KO
 	 */
-	public function addline(&$line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key)
+	public function addline(&$line_id, $client_id, $client_nom, $amount, $code_banque, $code_guichet, $number, $number_key, $fk_soc_rib)
 	{
 		$result = -1;
 		$concat = 0;
@@ -226,6 +228,7 @@ class BonPrelevement extends CommonObject
 			$sql .= ", fk_soc";
 			$sql .= ", client_nom";
 			$sql .= ", amount";
+			$sql .= ", fk_soc_rib";
 			$sql .= ", code_banque";
 			$sql .= ", code_guichet";
 			$sql .= ", number";
@@ -235,6 +238,7 @@ class BonPrelevement extends CommonObject
 			$sql .= ", ".((int) $client_id);
 			$sql .= ", '".$this->db->escape($client_nom)."'";
 			$sql .= ", ".((float) price2num($amount));
+			$sql .= ", ".(!empty($fk_soc_rib) ? (int) $fk_soc_rib : 'NULL');
 			$sql .= ", '".$this->db->escape($code_banque)."'";
 			$sql .= ", '".$this->db->escape($code_guichet)."'";
 			$sql .= ", '".$this->db->escape($number)."'";
@@ -778,7 +782,7 @@ class BonPrelevement extends CommonObject
 			$sql = "SELECT f.rowid, pfd.rowid as pfdrowid, f.fk_soc";
 			$sql .= ", pfd.code_banque, pfd.code_guichet, pfd.number, pfd.cle_rib";
 			$sql .= ", pfd.amount";
-			$sql .= ", s.nom as name";
+			$sql .= ", s.nom as name, pfd.fk_soc_rib";
 			if ($type != 'bank-transfer') {
 				$sql .= " FROM ".MAIN_DB_PREFIX."facture as f";
 			} else {
@@ -844,7 +848,8 @@ class BonPrelevement extends CommonObject
 					if ($resfetch >= 0) {		// Field 0 of $fac is rowid of invoice
 						if ($soc->fetch($tmpinvoice->socid) >= 0) {
 							$bac = new CompanyBankAccount($this->db);
-							$bac->fetch(0, $soc->id);
+							if (!empty($fac[9]))	$bac->fetch($fac[9]);	// Field 9 of $fac is rowid of company RIB
+							else					$bac->fetch(0, $soc->id);
 
 							if ($type != 'bank-transfer') {
 								if ($format == 'FRST' && $bac->frstrecur != 'FRST') {
@@ -997,8 +1002,9 @@ class BonPrelevement extends CommonObject
 						 * $fac[6] : cle rib
 						 * $fac[7] : amount
 						 * $fac[8] : client nom
+						 * $fac[9] : client rib id
 						 */
-						$ri = $this->AddFacture($fac[0], $fac[2], $fac[8], $fac[7], $fac[3], $fac[4], $fac[5], $fac[6], $type);
+						$ri = $this->AddFacture($fac[0], $fac[2], $fac[8], $fac[7], $fac[3], $fac[4], $fac[5], $fac[6], $type, $fac[9]);
 						if ($ri <> 0) {
 							$error++;
 						}
@@ -1540,7 +1546,8 @@ class BonPrelevement extends CommonObject
 				$sql .= " AND f.fk_soc = soc.rowid";
 				$sql .= " AND soc.fk_pays = c.rowid";
 				$sql .= " AND rib.fk_soc = f.fk_soc";
-				$sql .= " AND rib.default_rib = 1";
+				$sql .= " AND ((pl.fk_soc_rib IS NOT NULL AND rib.rowid = pl.fk_soc_rib) OR (pl.fk_soc_rib IS NULL AND rib.default_rib = 1))";
+		//		$sql .= " AND rib.default_rib = 1";
 				$sql .= " AND rib.type = 'ban'";
 
 				// Define $fileCrediteurSection. One section DrctDbtTxInf per invoice.

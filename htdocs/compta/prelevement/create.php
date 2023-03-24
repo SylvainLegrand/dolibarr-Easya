@@ -325,7 +325,7 @@ print '<br>';
  */
 
 $sql = "SELECT f.ref, f.rowid, f.total_ttc, s.nom as name, s.rowid as socid,";
-$sql .= " pfd.rowid as request_row_id, pfd.date_demande, pfd.amount";
+$sql .= " pfd.rowid as request_row_id, pfd.date_demande, pfd.amount, pfd.fk_soc_rib";
 if ($type == 'bank-transfer') {
 	$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f,";
 } else {
@@ -421,7 +421,8 @@ if ($resql) {
 		while ($i < $num && $i < $limit) {
 			$obj = $db->fetch_object($resql);
 
-			$bac->fetch(0, $obj->socid);
+			if (!empty($obj->fk_soc_rib))	$bac->fetch($obj->fk_soc_rib);
+			else							$bac->fetch(0, $obj->socid);
 
 			print '<tr class="oddeven">';
 

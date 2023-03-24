@@ -682,9 +682,10 @@ abstract class CommonInvoice extends CommonObject
 	 *  @param		float	$amount			Amount we request direct debit for
 	 *  @param		string	$type			'direct-debit' or 'bank-transfer'
 	 *  @param		string	$sourcetype		Source ('facture' or 'supplier_invoice')
+	 *  @param		int		$bacselected	IBAN selected
 	 *	@return     int         			<0 if KO, >0 if OK
 	 */
-	public function demande_prelevement($fuser, $amount = 0, $type = 'direct-debit', $sourcetype = 'facture')
+	public function demande_prelevement($fuser, $amount = 0, $type = 'direct-debit', $sourcetype = 'facture', $bacselected = '')
 	{
 		// phpcs:enable
 		global $conf;
@@ -696,7 +697,8 @@ abstract class CommonInvoice extends CommonObject
 		if ($this->statut > self::STATUS_DRAFT && $this->paye == 0) {
 			require_once DOL_DOCUMENT_ROOT.'/societe/class/companybankaccount.class.php';
 			$bac = new CompanyBankAccount($this->db);
-			$bac->fetch(0, $this->socid);
+			if (empty($bacselected))	$bac->fetch(0, $this->socid);
+			else						$bac->fetch($bacselected);
 
 			$sql = 'SELECT count(*)';
 			$sql .= ' FROM '.MAIN_DB_PREFIX.'prelevement_facture_demande';
@@ -735,11 +737,12 @@ abstract class CommonInvoice extends CommonObject
 						} else {
 							$sql .= 'fk_facture, ';
 						}
-						$sql .= ' amount, date_demande, fk_user_demande, code_banque, code_guichet, number, cle_rib, sourcetype, entity)';
+						$sql .= ' amount, date_demande, fk_user_demande, fk_soc_rib, code_banque, code_guichet, number, cle_rib, sourcetype, entity)';
 						$sql .= ' VALUES ('.$this->id;
 						$sql .= ",'".price2num($amount)."'";
 						$sql .= ",'".$this->db->idate($now)."'";
 						$sql .= ",".$fuser->id;
+						$sql .= ",".(!empty($bac->id) ? $bac->id : 'NULL');
 						$sql .= ",'".$this->db->escape($bac->code_banque)."'";
 						$sql .= ",'".$this->db->escape($bac->code_guichet)."'";
 						$sql .= ",'".$this->db->escape($bac->number)."'";
