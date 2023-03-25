@@ -6,6 +6,7 @@
  * Copyright (C) 2018       Nicolas ZABOURI         <info@inovea-conseil.com>
  * Copyright (C) 2018       Frédéric France         <frederic.france@netlogic.fr>
  * Copyright (C) 2019       Markus Welters          <markus@welters.de>
+ * Copyright (C) 2023       Alexandre Spangaro      <aspangaro@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +38,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/prelevement.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
 
 // Load translation files required by the page
-$langs->loadLangs(array('banks', 'categories', 'withdrawals', 'companies', 'bills'));
+$langs->loadLangs(array('banks',  'bills', 'categories', 'companies', 'withdrawals'));
 
 $type = GETPOST('type', 'aZ09');
 
@@ -325,7 +326,7 @@ print '<br>';
  * Invoices waiting for withdraw
  */
 
-$sql = "SELECT f.ref, f.rowid, f.total_ttc, s.nom as name, s.rowid as socid,";
+$sql = "SELECT f.ref, f.rowid, f.date_lim_reglement as dlp, f.total_ttc, s.nom as name, s.rowid as socid,";
 $sql .= " pfd.rowid as request_row_id, pfd.date_demande, pfd.amount, pfd.fk_soc_rib";
 if ($type == 'bank-transfer') {
 	$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f,";
@@ -406,6 +407,7 @@ if ($resql) {
 	print '<tr class="liste_titre">';
 	print '<td>'.$langs->trans($tradinvoice).'</td>';
 	print '<td>'.$langs->trans("ThirdParty").'</td>';
+	print '<td>'.$langs->trans("DateDue").'</td>';
 	print '<td>'.$langs->trans("RIB").'</td>';
 	print '<td>'.$langs->trans("RUM").'</td>';
 	print '<td class="right">'.$langs->trans("AmountTTC").'</td>';
@@ -438,6 +440,11 @@ if ($resql) {
 			print '<td>';
 			$thirdpartystatic->fetch($obj->socid);
 			print $thirdpartystatic->getNomUrl(1, 'ban');
+			print '</td>';
+
+			// Date limit payment
+			print '<td>';
+			print dol_print_date($db->jdate($obj->dlp), 'day');
 			print '</td>';
 
 			// RIB
