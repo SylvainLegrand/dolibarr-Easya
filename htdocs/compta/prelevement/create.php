@@ -329,6 +329,7 @@ print '<br>';
 $sql = "SELECT f.ref, f.rowid, f.date_lim_reglement as dlp, f.total_ttc, s.nom as name, s.rowid as socid,";
 $sql .= " pfd.rowid as request_row_id, pfd.date_demande, pfd.amount, pfd.fk_soc_rib";
 if ($type == 'bank-transfer') {
+	$sql .= ", ref_supplier";
 	$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f,";
 } else {
 	$sql .= " FROM ".MAIN_DB_PREFIX."facture as f,";
@@ -407,13 +408,16 @@ if ($resql) {
 	print '<tr class="liste_titre">';
 	print '<td>'.$langs->trans($tradinvoice).'</td>';
 	print '<td>'.$langs->trans("ThirdParty").'</td>';
-	print '<td>'.$langs->trans("DateDue").'</td>';
+	if ($type == 'bank-transfer') {
+		print '<td>' . $langs->trans("RefSupplier") . '</td>';
+	}
+	print '<td class="center">'.$langs->trans("DateDue").'</td>';
 	print '<td>'.$langs->trans("RIB").'</td>';
 	print '<td>'.$langs->trans("RUM").'</td>';
 	print '<td class="right">'.$langs->trans("AmountTTC").'</td>';
 	print '<td class="right">'.$langs->trans("DateRequest").'</td>';
 	if ($massactionbutton || $massaction) { // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
-		print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
+		print '<td class="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
 	}
 	print '</tr>';
 
@@ -442,8 +446,15 @@ if ($resql) {
 			print $thirdpartystatic->getNomUrl(1, 'ban');
 			print '</td>';
 
+			// Ref supplier
+			if ($type == 'bank-transfer') {
+				print '<td>';
+				print $obj->ref_supplier;
+				print '</td>';
+			}
+
 			// Date limit payment
-			print '<td>';
+			print '<td class="center">';
 			print dol_print_date($db->jdate($obj->dlp), 'day');
 			print '</td>';
 
