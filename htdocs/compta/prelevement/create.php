@@ -211,116 +211,56 @@ if ($type == 'bank-transfer') {
 
 print load_fiche_titre($title);
 
-print dol_get_fiche_head();
+if (empty($conf->global->WITHDRAWAL_NOT_SHOW_BANK_ACCOUNT)) {
+	print_barre_liste($langs->trans('ListOfAccounts'), $page, $_SERVER["PHP_SELF"], '', '', '', '', '', '', 'bank');
 
-$nb = $bprev->nbOfInvoiceToPay($type);
-$pricetowithdraw = $bprev->SommeAPrelever($type);
-if ($nb < 0) {
-	dol_print_error($bprev->error);
-}
-print '<table class="border centpercent tableforfield">';
+	print '<table class="noborder centpercent">';
+	print '<tr class="liste_titre">';
+	print '<td>'.$langs->trans("BankAccounts").'</td>';
+	print '<td>'.$langs->trans("Label").'</td>';
+	print '<td>'.$langs->trans("BankAccountNumber").'</td>';
+	print '<td class="center">'.$langs->trans("Balance").'</td>';
+	print '</tr>';
 
-$title = $langs->trans("NbOfInvoiceToWithdraw");
-if ($type == 'bank-transfer') {
-	$title = $langs->trans("NbOfInvoiceToPayByBankTransfer");
-}
+	// Load array of financial accounts (opened only & type current)
+	$accounts = array();
 
-print '<tr><td class="titlefieldcreate">'.$title.'</td>';
-print '<td>';
-print $nb;
-print '</td></tr>';
+	$sql = "SELECT b.rowid, b.label, b.courant, b.rappro, b.number, b.fk_accountancy_journal, b.currency_code, b.datec as date_creation, b.tms as date_update";
+	$sql .= " FROM ".MAIN_DB_PREFIX."bank_account as b";
+	$sql .= " WHERE b.entity IN (".getEntity('bank_account').")";
+	$sql .= " AND courant = 1";
+	$sql .= " AND clos = 0";
 
-print '<tr><td>'.$langs->trans("AmountTotal").'</td>';
-print '<td class="amount">';
-print price($pricetowithdraw);
-print '</td>';
-print '</tr>';
+	$resql = $db->query($sql);
+	if ($resql) {
+		$num = $db->num_rows($resql);
+		$i = 0;
+		while ($i < $num) {
+			$objp = $db->fetch_object($resql);
+			$accountstatic = new Account($db);
+			$accountstatic->fetch($objp->rowid);
 
-print '</table>';
-print '</div>';
+			print '<tr class="oddeven">';
 
-if ($mesg) {
-	print $mesg;
-}
+			print '<td class="nowrap">'.$accountstatic->getNomUrl(1).'</td>';
 
-print '<div class="tabsAction">'."\n";
+			print '<td class="nowrap">'.$accountstatic->label.'</td>';
 
-print '<form action="'.$_SERVER['PHP_SELF'].'?action=create" method="POST">';
-print '<input type="hidden" name="token" value="'.newToken().'">';
-print '<input type="hidden" name="type" value="'.$type.'">';
-if ($nb) {
-	if ($pricetowithdraw) {
-		$title = $langs->trans('BankToReceiveWithdraw').': ';
-		if ($type == 'bank-transfer') {
-			$title = $langs->trans('BankToPayCreditTransfer').': ';
+			print '<td class="nowrap">'.$accountstatic->number.'</td>';
+
+			$solde = $accountstatic->solde(1);
+			print '<td class="amount right">'.price($solde, 0, $langs, 1, -1, -1, $accountstatic->currency_code).'</td>';
+
+			$i++;
 		}
-		print $title;
-		print img_picto('', 'bank_account');
-		$default_account = ($type == 'bank-transfer' ? 'PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT' : 'PRELEVEMENT_ID_BANKACCOUNT');
-		print $form->select_comptes($conf->global->$default_account, 'id_bankaccount', 0, "courant=1", 0, '', 0, '', 1);
-		print ' - ';
-
-		print $langs->trans('ExecutionDate').' ';
-		$datere = dol_mktime(0, 0, 0, GETPOST('remonth', 'int'), GETPOST('reday', 'int'), GETPOST('reyear', 'int'));
-		print $form->selectDate($datere, 're');
-
-
-		if ($mysoc->isInEEC()) {
-			$title = $langs->trans("CreateForSepa");
-			if ($type == 'bank-transfer') {
-				$title = $langs->trans("CreateSepaFileForPaymentByBankTransfer");
-			}
-
-			if ($type != 'bank-transfer') {
-				print '<select name="format">';
-				print '<option value="FRST"'.(GETPOST('format', 'aZ09') == 'FRST' ? ' selected="selected"' : '').'>'.$langs->trans('SEPAFRST').'</option>';
-				print '<option value="RCUR"'.(GETPOST('format', 'aZ09') == 'RCUR' ? ' selected="selected"' : '').'>'.$langs->trans('SEPARCUR').'</option>';
-				print '</select>';
-			}
-			print '<input class="butAction" type="submit" value="'.$title.'"/>';
-		} else {
-			$title = $langs->trans("CreateAll");
-			if ($type == 'bank-transfer') {
-				$title = $langs->trans("CreateFileForPaymentByBankTransfer");
-			}
-			print '<a class="butAction" type="submit" href="create.php?action=create&format=ALL&type='.$type.'">'.$title."</a>\n";
-		}
+		$db->free($resql);
 	} else {
-		if ($mysoc->isInEEC()) {
-			$title = $langs->trans("CreateForSepaFRST");
-			if ($type == 'bank-transfer') {
-				$title = $langs->trans("CreateSepaFileForPaymentByBankTransfer");
-			}
-			print '<a class="butActionRefused classfortooltip" href="#" title="'.$langs->trans("AmountMustBePositive").'">'.$title."</a>\n";
+		print '<tr class="oddeven"><td colspan="6"><span class="opacitymedium">'.$langs->trans("None").'</span></td></tr>';
+	}
 
-			if ($type != 'bank-transfer') {
-				$title = $langs->trans("CreateForSepaRCUR");
-				print '<a class="butActionRefused classfortooltip" href="#" title="'.$langs->trans("AmountMustBePositive").'">'.$title."</a>\n";
-			}
-		} else {
-			$title = $langs->trans("CreateAll");
-			if ($type == 'bank-transfer') {
-				$title = $langs->trans("CreateFileForPaymentByBankTransfer");
-			}
-			print '<a class="butActionRefused classfortooltip" href="#">'.$title."</a>\n";
-		}
-	}
-} else {
-	$titlefortab = $langs->transnoentitiesnoconv("StandingOrders");
-	$title = $langs->trans("CreateAll");
-	if ($type == 'bank-transfer') {
-		$titlefortab = $langs->transnoentitiesnoconv("PaymentByBankTransfers");
-		$title = $langs->trans("CreateFileForPaymentByBankTransfer");
-	}
-	print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->transnoentitiesnoconv("NoInvoiceToWithdraw", $titlefortab, $titlefortab)).'">'.$title."</a>\n";
+	print "</table>";
+	print "<br>\n";
 }
-
-print "</form>\n";
-
-print "</div>\n";
-print '</form>';
-print '<br>';
-
 
 /*
  * Invoices waiting for withdraw
@@ -503,7 +443,7 @@ if ($resql) {
 			$i++;
 		}
 	} else {
-		print '<tr class="oddeven"><td colspan="6"><span class="opacitymedium">'.$langs->trans("None").'</span></td></tr>';
+		print '<tr class="oddeven"><td colspan="8"><span class="opacitymedium">'.$langs->trans("None").'</span></td></tr>';
 	}
 	print "</table>";
 	print "</form>";
@@ -511,6 +451,93 @@ if ($resql) {
 } else {
 	dol_print_error($db);
 }
+
+$nb = $bprev->nbOfInvoiceToPay($type);
+$pricetowithdraw = $bprev->SommeAPrelever($type);
+if ($nb < 0) {
+	dol_print_error($bprev->error);
+}
+
+if ($mesg) {
+	print $mesg;
+}
+
+print '<div class="tabsAction">'."\n";
+
+print '<form action="'.$_SERVER['PHP_SELF'].'?action=create" method="POST">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="type" value="'.$type.'">';
+if ($nb) {
+	if ($pricetowithdraw) {
+		$title = $langs->trans('BankToReceiveWithdraw').': ';
+		if ($type == 'bank-transfer') {
+			$title = $langs->trans('BankToPayCreditTransfer').': ';
+		}
+		print $title;
+		print img_picto('', 'bank_account');
+		$default_account = ($type == 'bank-transfer' ? 'PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT' : 'PRELEVEMENT_ID_BANKACCOUNT');
+		print $form->select_comptes($conf->global->$default_account, 'id_bankaccount', 0, "courant=1", 0, '', 0, '', 1);
+		print ' - ';
+
+		print $langs->trans('ExecutionDate').' ';
+		$datere = dol_mktime(0, 0, 0, GETPOST('remonth', 'int'), GETPOST('reday', 'int'), GETPOST('reyear', 'int'));
+		print $form->selectDate($datere, 're');
+
+
+		if ($mysoc->isInEEC()) {
+			$title = $langs->trans("CreateForSepa");
+			if ($type == 'bank-transfer') {
+				$title = $langs->trans("CreateSepaFileForPaymentByBankTransfer");
+			}
+
+			if ($type != 'bank-transfer') {
+				print '<select name="format">';
+				print '<option value="FRST"'.(GETPOST('format', 'aZ09') == 'FRST' ? ' selected="selected"' : '').'>'.$langs->trans('SEPAFRST').'</option>';
+				print '<option value="RCUR"'.(GETPOST('format', 'aZ09') == 'RCUR' ? ' selected="selected"' : '').'>'.$langs->trans('SEPARCUR').'</option>';
+				print '</select>';
+			}
+			print '<input class="butAction" type="submit" value="'.$title.'"/>';
+		} else {
+			$title = $langs->trans("CreateAll");
+			if ($type == 'bank-transfer') {
+				$title = $langs->trans("CreateFileForPaymentByBankTransfer");
+			}
+			print '<a class="butAction" type="submit" href="create.php?action=create&format=ALL&type='.$type.'">'.$title."</a>\n";
+		}
+	} else {
+		if ($mysoc->isInEEC()) {
+			$title = $langs->trans("CreateForSepaFRST");
+			if ($type == 'bank-transfer') {
+				$title = $langs->trans("CreateSepaFileForPaymentByBankTransfer");
+			}
+			print '<a class="butActionRefused classfortooltip" href="#" title="'.$langs->trans("AmountMustBePositive").'">'.$title."</a>\n";
+
+			if ($type != 'bank-transfer') {
+				$title = $langs->trans("CreateForSepaRCUR");
+				print '<a class="butActionRefused classfortooltip" href="#" title="'.$langs->trans("AmountMustBePositive").'">'.$title."</a>\n";
+			}
+		} else {
+			$title = $langs->trans("CreateAll");
+			if ($type == 'bank-transfer') {
+				$title = $langs->trans("CreateFileForPaymentByBankTransfer");
+			}
+			print '<a class="butActionRefused classfortooltip" href="#">'.$title."</a>\n";
+		}
+	}
+} else {
+	$titlefortab = $langs->transnoentitiesnoconv("StandingOrders");
+	$title = $langs->trans("CreateAll");
+	if ($type == 'bank-transfer') {
+		$titlefortab = $langs->transnoentitiesnoconv("PaymentByBankTransfers");
+		$title = $langs->trans("CreateFileForPaymentByBankTransfer");
+	}
+	print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->transnoentitiesnoconv("NoInvoiceToWithdraw", $titlefortab, $titlefortab)).'">'.$title."</a>\n";
+}
+
+print "</form>\n";
+
+print "</div>\n";
+print '</form>';
 
 
 /*
