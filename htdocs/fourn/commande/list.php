@@ -9,6 +9,7 @@
  * Copyright (C) 2018-2021 Frédéric France      <frederic.france@netlogic.fr>
  * Copyright (C) 2018-2020 Charlene Benke       <charlie@patas-monkey.com>
  * Copyright (C) 2019      Nicolas ZABOURI      <info@inovea-conseil.com>
+ * Copyright (C) 2021-2023 Alexandre Spangaro   <aspangaro@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -330,6 +331,12 @@ if (empty($reshook)) {
 			if (!empty($createbills_onebythird) && !empty($TFactThird[$cmd->socid])) {
 				$objecttmp = $TFactThird[$cmd->socid]; // If option "one bill per third" is set, we use already created order.
 			} else {
+				// Search if the VAT reverse-charge is activated by default in supplier card to resume the information
+				if (!empty($cmd->socid) > 0) {
+					$societe = new Societe($db);
+					$societe->fetch($cmd->socid);
+					$objecttmp->vat_reverse_charge = $societe->vat_reverse_charge;
+				}
 				$objecttmp->socid = $cmd->socid;
 				$objecttmp->type = $objecttmp::TYPE_STANDARD;
 				$objecttmp->cond_reglement_id	= $cmd->cond_reglement_id;
