@@ -1732,6 +1732,19 @@ class Ticket extends CommonObject
 					if (dol_mkdir($destdir) >= 0) {
 						require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 						dol_move($filespath, $destfile);
+						if ($actioncomm->code == "TICKET_MSG") {
+							$ecmfile = new EcmFiles($this->db);
+							$destdir = preg_replace('/^'.preg_quote(DOL_DATA_ROOT, '/').'/', '', $destdir);
+							$destdir = preg_replace('/[\\/]$/', '', $destdir);
+							$destdir = preg_replace('/^[\\/]/', '', $destdir);
+							$ecmfile->fetch(0, '', "$rel_dir/$filename");
+							require_once DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';
+							$ecmfile->share = getRandomPassword(true);
+							$result = $ecmfile->update($user);
+							if ($result < 0) {
+								setEventMessages($ecmfile->error, $ecmfile->errors, 'warnings');
+							}
+						}
 					}
 				}
 			}
