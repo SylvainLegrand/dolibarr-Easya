@@ -384,7 +384,7 @@ function completeFileArrayWithDatabaseInfo(&$filearray, $relativedir)
 					$filearray[$key]['cover'] = $ecmfile->cover;
 					$filearray[$key]['keywords'] = $ecmfile->keywords;
 					$filearray[$key]['acl'] = $ecmfile->acl;
-					$filearray[$key]['rowid'] = $ecmfile->share;
+					$filearray[$key]['rowid'] = $ecmfile->id;
 					$filearray[$key]['label'] = $ecmfile->label;
 					$filearray[$key]['share'] = $ecmfile->share;
 
