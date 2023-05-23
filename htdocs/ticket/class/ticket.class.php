@@ -1737,7 +1737,7 @@ class Ticket extends CommonObject
 							$destdir = preg_replace('/^'.preg_quote(DOL_DATA_ROOT, '/').'/', '', $destdir);
 							$destdir = preg_replace('/[\\/]$/', '', $destdir);
 							$destdir = preg_replace('/^[\\/]/', '', $destdir);
-							$ecmfile->fetch(0, '', "$rel_dir/$filename");
+							$ecmfile->fetch(0, '', $destdir.'/'.$attachedfiles['names'][$key]);
 							require_once DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';
 							$ecmfile->share = getRandomPassword(true);
 							$result = $ecmfile->update($user);
