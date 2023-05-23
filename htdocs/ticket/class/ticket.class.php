@@ -1716,16 +1716,25 @@ class Ticket extends CommonObject
 		if (is_array($attachedfiles) && count($attachedfiles) > 0) {
 			$actioncomm->attachedfiles = $attachedfiles;
 		}
-
-		if (!empty($mimefilename_list) && is_array($mimefilename_list)) {
-			$actioncomm->note_private = dol_concatdesc($actioncomm->note_private, "\n".$langs->transnoentities("AttachedFiles").': '.join(';', $mimefilename_list));
-		}
-
+		
 		$actionid = $actioncomm->create($user);
 		if ($actionid <= 0) {
 			$error++;
 			$this->error = $actioncomm->error;
 			$this->errors = $actioncomm->errors;
+		}
+
+		if ($actionid > 0) {
+			if (is_array($attachedfiles) && array_key_exists('paths', $attachedfiles) && count($attachedfiles['paths']) > 0) {
+				foreach ($attachedfiles['paths'] as $key => $filespath) {
+					$destdir = $conf->agenda->dir_output.'/'.$actionid;
+					$destfile = $destdir.'/'.$attachedfiles['names'][$key];
+					if (dol_mkdir($destdir) >= 0) {
+						require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+						dol_move($filespath, $destfile);
+					}
+				}
+			}
 		}
 
 		// Commit or rollback
