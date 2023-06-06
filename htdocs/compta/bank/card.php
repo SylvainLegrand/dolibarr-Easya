@@ -514,8 +514,10 @@ if ($action == 'create') {
 		}
 
 		// IBAN
+		$iban	= GETPOST('iban') ?GETPOST('iban', 'alpha') : $object->iban;
+		if (strlen($iban) == 27)	$iban	= substr($iban, 0, 4).'&nbsp;'.substr($iban, 4, 4).'&nbsp;'.substr($iban, 8, 4).'&nbsp;'.substr($iban, 12, 4).'&nbsp;'.substr($iban, 16, 4).'&nbsp;'.substr($iban, 20, 4).'&nbsp;'.substr($iban, 24, 3);
 		print '<tr><td>'.$langs->trans($ibankey).'</td>';
-		print '<td><input maxlength="34" type="text" class="flat minwidth300" name="iban" value="'.(GETPOST('iban') ?GETPOST('iban', 'alpha') : $object->iban).'"></td></tr>';
+		print '<td><input maxlength="34" type="text" class="flat minwidth300" name="iban" value="'.$iban.'"></td></tr>';
 
 		print '<tr><td>'.$langs->trans($bickey).'</td>';
 		print '<td><input maxlength="11" type="text" class="flat minwidth150" name="bic" value="'.(GETPOST('bic') ?GETPOST('bic', 'alpha') : $object->bic).'"></td></tr>';
