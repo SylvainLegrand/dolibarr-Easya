@@ -764,12 +764,19 @@ ALTER TABLE llx_societe ADD COLUMN vat_reverse_charge tinyint DEFAULT 0 AFTER tv
 ALTER TABLE llx_societe_perentity ADD COLUMN vat_reverse_charge tinyint DEFAULT 0 AFTER entity;
 ALTER TABLE llx_facture_fourn ADD COLUMN vat_reverse_charge tinyint DEFAULT 0 AFTER close_note;
 
+-- Add RIB on prelevement demande
+ALTER TABLE llx_prelevement_facture_demande ADD COLUMN fk_soc_rib int DEFAULT NULL AFTER fk_user_demande;
+ALTER TABLE llx_prelevement_lignes ADD COLUMN fk_soc_rib int DEFAULT NULL AFTER amount;
+
 -- Add VAT by region
 ALTER TABLE llx_c_departements ADD COLUMN fk_tva integer DEFAULT NULL AFTER nom;
 
 -- Per_entity - Rename field
 ALTER TABLE llx_societe_perentity CHANGE COLUMN code_compta accountancy_code_customer varchar(24);
 ALTER TABLE llx_societe_perentity CHANGE COLUMN code_compta_fournisseur accountancy_code_supplier varchar(24);
+
+-- Add Bankaccount on bon prelevement
+ALTER TABLE llx_prelevement_bons ADD COLUMN fk_account integer DEFAULT NULL AFTER credite;
 
 -- Backport 14.0.0 -> 15.0.0
 ALTER TABLE llx_paiement_facture ADD COLUMN multicurrency_code varchar(3);
