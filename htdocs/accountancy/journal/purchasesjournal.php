@@ -314,6 +314,33 @@ if ($result) {
 	dol_print_error($db);
 }
 
+// Modification - Situation invoice - Begin
+// Fix amount precision and gap
+$tab_list = array('tabht' => 'total_ht', 'tabtva' => 'total_tva', 'tablocaltax1' => 'total_localtax1', 'tablocaltax2' => 'total_localtax2', 'tabttc' => 'total_ttc');
+foreach ($tab_list as $tab_property => $total_property) {
+	foreach ($tabfac as $invoice_id => $invoice_info) {
+		// Fix HT
+		$total_amount = 0;
+		foreach (${$tab_property}[$invoice_id] as $compta_prod => $amount) {
+			// Fix precision
+			$amount = price2num($amount, 'MT');
+			$total_amount += $amount;
+			${$tab_property}[$invoice_id][$compta_prod] = $amount;
+		}
+		if (price2num($total_amount) != price2num($invoice_info[$total_property])) {
+			foreach (${$tab_property}[$invoice_id] as $compta_prod => $amount) {
+				if (!empty($amount)) {
+					// Fix gap
+					$amount += $invoice_info[$total_property] - $total_amount;
+					${$tab_property}[$invoice_id][$compta_prod] = $amount;
+					break;
+				}
+			}
+		}
+	}
+}
+// Modification - Situation invoice - End
+
 $errorforinvoice = array();
 
 // Loop in invoices to detect lines with not binding lines
