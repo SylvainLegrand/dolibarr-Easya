@@ -140,12 +140,14 @@ $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_url as bu1 ON bu1.fk_bank = b.rowid A
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_url as bu2 ON bu2.fk_bank = b.rowid AND bu2.type='user'";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_url as bu3 ON bu3.fk_bank = b.rowid AND bu3.type='payment'";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."bank_url as bu4 ON bu4.fk_bank = b.rowid AND bu4.type='payment_supplier'";
+$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."paiement AS p ON p.rowid = bu3.url_id";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc on bu1.url_id=soc.rowid";
 if (!empty($conf->global->MAIN_COMPANY_PERENTITY_SHARED)) {
 	$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_perentity as spe ON spe.fk_soc = soc.rowid AND spe.entity = " . ((int) $conf->entity);
 }
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."user as u on bu2.url_id=u.rowid";
 $sql .= " WHERE ba.fk_accountancy_journal=".((int) $id_journal);
+$sql .= " AND (p.rowid IS NULL OR bu1.url_id = p.fk_soc)";
 $sql .= ' AND b.amount <> 0 AND ba.entity IN ('.getEntity('bank_account', 0).')'; // We don't share object for accountancy
 if ($date_start && $date_end) {
 	$sql .= " AND b.dateo >= '".$db->idate($date_start)."' AND b.dateo <= '".$db->idate($date_end)."'";
@@ -309,10 +311,30 @@ if ($result) {
 		// get_url may return -1 which is not traversable
 		if (is_array($links) && count($links) > 0) {
 			$is_sc = false;
+			$invoice_payment_id = 0;
+			$nb_companies = 0;
 			foreach ($links as $v) {
 				if ($v['type'] == 'sc') {
 					$is_sc = true;
 					break;
+				} elseif ($v['type'] == 'company') {
+					$nb_companies++;
+				} elseif ($v['type'] == 'payment') {
+					$invoice_payment_id = $v['url_id'];
+				}
+			}
+			if ($invoice_payment_id > 0 && $nb_companies > 1) {
+				// Get thirdparty
+				$tmppayment->fetch($invoice_payment_id);
+				$arrayofamounts = $tmppayment->getAmountsArray();
+				if (is_array($arrayofamounts)) {
+					foreach ($arrayofamounts as $invoiceid => $amount) {
+						$tmpinvoice->fetch($invoiceid);
+						$tmpinvoice->fetch_thirdparty();
+						if ($tmpinvoice->thirdparty->code_compta) {
+							$tabtp[$obj->rowid][$tmpinvoice->thirdparty->code_compta] += $amount;
+						}
+					}
 				}
 			}
 			// Now loop on each link of record in bank (code similar to bankentries_list.php)
@@ -351,7 +373,7 @@ if ($result) {
 					$societestatic->name = $links[$key]['label'];
 					$societestatic->email = $tabcompany[$obj->rowid]['email'];
 					$tabpay[$obj->rowid]["soclib"] = $societestatic->getNomUrl(1, '', 30);
-					if ($compta_soc) {
+					if ($compta_soc && (empty($invoice_payment_id) || $nb_companies == 1)) {
 						$tabtp[$obj->rowid][$compta_soc] += $obj->amount;
 					}
 				} elseif ($links[$key]['type'] == 'user') {

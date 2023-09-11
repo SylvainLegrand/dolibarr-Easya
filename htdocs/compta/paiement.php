@@ -251,6 +251,7 @@ if (empty($reshook)) {
 
 		// Creation of payment line
 		$paiement = new Paiement($db);
+		$paiement->socid     	= $object->socid;
 		$paiement->datepaye     = $datepaye;
 		$paiement->amounts      = $amounts; // Array with all payments dispatching with invoice id
 		$paiement->multicurrency_amounts = $multicurrency_amounts; // Array with all payments dispatching
