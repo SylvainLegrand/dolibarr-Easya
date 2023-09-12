@@ -147,7 +147,7 @@ if (!empty($conf->global->MAIN_COMPANY_PERENTITY_SHARED)) {
 }
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."user as u on bu2.url_id=u.rowid";
 $sql .= " WHERE ba.fk_accountancy_journal=".((int) $id_journal);
-$sql .= " AND (p.rowid IS NULL OR bu1.url_id = p.fk_soc)";
+$sql .= " AND (p.fk_soc IS NULL OR bu1.url_id = p.fk_soc)";
 $sql .= ' AND b.amount <> 0 AND ba.entity IN ('.getEntity('bank_account', 0).')'; // We don't share object for accountancy
 if ($date_start && $date_end) {
 	$sql .= " AND b.dateo >= '".$db->idate($date_start)."' AND b.dateo <= '".$db->idate($date_end)."'";
