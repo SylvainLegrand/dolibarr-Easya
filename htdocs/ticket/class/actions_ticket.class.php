@@ -363,7 +363,9 @@ class ActionsTicket extends CommonHookActions
 								$filePath = DOL_DATA_ROOT.'/'.$doc->filepath.'/'.$doc->filename;
 								$mime = dol_mimetype($filePath);
 								$thumb = $arraymsgs['id'].'/thumbs/'.substr($doc->filename, 0, strrpos($doc->filename, '.')).'_mini'.substr($doc->filename, strrpos($doc->filename, '.'));
-								$doclink = DOL_URL_ROOT.'/document.php?hashp='.urlencode($doc->share);
+
+								$agenda_src_path = str_replace('agenda/', '', $doc->filepath.'/'.$doc->filename);
+								$doclink = dol_buildpath('/document.php', 1).'?modulepart=actions&attachment=0&file='.$agenda_src_path.'&entity='.$conf->entity;
 
 								$mimeAttr = ' mime="'.$mime.'" ';
 								$class = '';
@@ -371,7 +373,7 @@ class ActionsTicket extends CommonHookActions
 									$class .= ' documentpreview';
 								}
 
-								$footer .= '<a href="'.$doclink.'" class="btn-link '.$class.'" target="_blank"  '.$mimeAttr.' >';
+								$footer .= '<a href="'.$doclink.'" class="btn-link '.$class.'" target="_blank"  '.$mimeAttr.' rel="noopener noreferrer">';
 								$footer .= img_mime($filePath).' '.$doc->filename;
 								$footer .= '</a>';
 
