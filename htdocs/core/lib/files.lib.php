@@ -1840,6 +1840,18 @@ function dol_add_file_process($upload_dir, $allowoverwrite = 0, $donotupdatesess
 						$formmail = new FormMail($db);
 						$formmail->trackid = $trackid;
 						$formmail->add_attached_files($destfull, $destfile, $TFile['type'][$i]);
+
+						// Save files sent from ticket interface as shared
+						if (in_array($TFile['type'][$i], ['application/pdf', 'image/jpeg', 'image/png', 'image/gif']) && strpos($_SERVER["REQUEST_URI"], 'ticket/card.php') !== false && GETPOST('send_email', 'int') > 0) {
+							$result = addFileIntoDatabaseIndex($upload_dir, basename($destfile).($resupload == 2 ? '.noexe' : ''), $TFile['name'][$i], 'uploaded', 1, $object);
+							if ($result < 0) {
+								if ($allowoverwrite) {
+									// Do not show error message. We can have an error due to DB_ERROR_RECORD_ALREADY_EXISTS
+								} else {
+									setEventMessages('WarningFailedToAddFileIntoDatabaseIndex', null, 'warnings');
+								}
+							}
+						}
 					}
 
 					// Update index table of files (llx_ecm_files)
