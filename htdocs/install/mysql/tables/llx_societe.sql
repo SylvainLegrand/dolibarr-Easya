@@ -38,8 +38,10 @@ create table llx_societe
 
   code_client              varchar(24),                         		-- code client
   code_fournisseur         varchar(24),                         		-- code fournisseur
-  code_compta              varchar(24),                         		-- customer accountancy auxiliary account
-  code_compta_fournisseur  varchar(24),                         		-- supplier accountancy auxiliary account
+  accountancy_code_customer_general varchar(32) DEFAULT NULL,
+  code_compta              varchar(32),                         		-- code compta client
+  accountancy_code_supplier_general varchar(32) DEFAULT NULL,
+  code_compta_fournisseur  varchar(32),                          		-- supplier accountancy auxiliary account
   address                  varchar(255),                        		-- company address
   zip                      varchar(25),                         		-- zipcode
   town                     varchar(50),                         		-- town

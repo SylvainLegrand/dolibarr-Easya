@@ -96,6 +96,7 @@ create table llx_user
   color                   varchar(6),
   barcode                 varchar(255)  DEFAULT NULL,
   fk_barcode_type         integer       DEFAULT 0,
+  accountancy_code_user_general varchar(32) DEFAULT NULL,
   accountancy_code        varchar(32) NULL,
   nb_holiday              integer       DEFAULT 0,
   thm                     double(24,8),

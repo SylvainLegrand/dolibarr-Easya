@@ -411,6 +411,7 @@ ALTER TABLE llx_product_fournisseur_price_log ADD INDEX idx_product_fournisseur_
 ALTER TABLE llx_bordereau_cheque ADD COLUMN label varchar(255) AFTER ref;
 
 ALTER TABLE llx_societe ADD COLUMN vat_reverse_charge tinyint DEFAULT 0 AFTER tva_assuj;
+ALTER TABLE llx_societe_perentity ADD COLUMN vat_reverse_charge tinyint DEFAULT 0 AFTER entity;
 ALTER TABLE llx_facture_fourn ADD COLUMN vat_reverse_charge tinyint DEFAULT 0 AFTER close_note;
 
 ALTER TABLE llx_c_email_templates add COLUMN defaultfortype smallint DEFAULT 0;
@@ -579,3 +580,10 @@ ALTER TABLE llx_facture ADD COLUMN fk_input_reason integer NULL DEFAULT NULL AFT
 -- Product/service managed in stock
 ALTER TABLE llx_product ADD COLUMN stockable_product integer DEFAULT 1 NOT NULL;
 UPDATE llx_product set stockable_product = 0 WHERE type = 1;
+
+-- Add accountancy code general on user / customer / supplier subledger
+ALTER TABLE llx_user ADD COLUMN accountancy_code_user_general varchar(32) DEFAULT NULL AFTER fk_barcode_type;
+ALTER TABLE llx_societe ADD COLUMN accountancy_code_customer_general varchar(32) DEFAULT NULL AFTER code_fournisseur;
+ALTER TABLE llx_societe ADD COLUMN accountancy_code_supplier_general varchar(32) DEFAULT NULL AFTER code_compta;
+ALTER TABLE llx_societe_perentity ADD COLUMN accountancy_code_customer_general varchar(32) DEFAULT NULL AFTER entity;
+ALTER TABLE llx_societe_perentity ADD COLUMN accountancy_code_supplier_general varchar(32) DEFAULT NULL AFTER accountancy_code_customer;
