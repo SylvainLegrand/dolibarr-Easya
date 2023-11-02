@@ -594,6 +594,12 @@ class Societe extends CommonObject
 	public $code_fournisseur;
 
 	/**
+	 * Accounting general code for customer
+	 * @var string
+	 */
+	public $accountancy_code_customer_general;
+
+	/**
 	 * Accounting code for client
 	 * @var string
 	 */
@@ -612,6 +618,12 @@ class Societe extends CommonObject
 	 * @var string
 	 */
 	public $accountancy_code_customer;
+
+	/**
+	 * Accounting general code for supplier
+	 * @var string
+	 */
+	public $accountancy_code_supplier_general;
 
 	/**
 	 * Accounting code for supplier
@@ -900,7 +912,9 @@ class Societe extends CommonObject
 		}
 		$this->import_key = trim($this->import_key);
 
+		$this->accountancy_code_customer_general = trim($this->accountancy_code_customer_general);
 		$this->accountancy_code_customer = trim($this->code_compta);
+		$this->accountancy_code_supplier_general = trim($this->accountancy_code_supplier_general);
 		$this->accountancy_code_supplier = trim($this->code_compta_fournisseur);
 		$this->accountancy_code_buy = trim($this->accountancy_code_buy);
 		$this->accountancy_code_sell = trim($this->accountancy_code_sell);
@@ -1361,8 +1375,10 @@ class Societe extends CommonObject
 			$this->get_codefournisseur($this, 1);
 		}
 
+		$this->accountancy_code_customer_general = trim($this->accountancy_code_customer_general);
 		$this->code_compta_client = trim(empty($this->code_compta) ? $this->code_compta_client : $this->code_compta);
 		$this->code_compta = $this->code_compta_client; // for backward compatibility
+		$this->accountancy_code_supplier_general = trim($this->accountancy_code_supplier_general);
 		$this->code_compta_fournisseur = trim($this->code_compta_fournisseur);
 
 		// Check parameters. More tests are done later in the ->verify()
@@ -1539,10 +1555,12 @@ class Societe extends CommonObject
 				$sql .= ", accountancy_code_buy = '" . $this->db->escape($this->accountancy_code_buy) . "'";
 				$sql .= ", accountancy_code_sell= '" . $this->db->escape($this->accountancy_code_sell) . "'";
 				if ($customer) {
+					$sql .= ", accountancy_code_customer_general = ".(!empty($this->accountancy_code_customer_general) ? "'".$this->db->escape($this->accountancy_code_customer_general)."'" : "null");
 					$sql .= ", code_compta = ".(!empty($this->code_compta_client) ? "'".$this->db->escape($this->code_compta_client)."'" : "null");
 				}
 
 				if ($supplier) {
+					$sql .= ", accountancy_code_supplier_general = ".(!empty($this->accountancy_code_supplier_general) ? "'".$this->db->escape($this->accountancy_code_supplier_general)."'" : "null");
 					$sql .= ", code_compta_fournisseur = ".(($this->code_compta_fournisseur != "") ? "'".$this->db->escape($this->code_compta_fournisseur)."'" : "null");
 				}
 			}
@@ -1634,7 +1652,9 @@ class Societe extends CommonObject
 					$sql .= " fk_soc";
 					$sql .= ", entity";
 					$sql .= ", vat_reverse_charge";
+					$sql .= ", accountancy_code_customer_general";
 					$sql .= ", accountancy_code_customer";
+					$sql .= ", accountancy_code_supplier_general";
 					$sql .= ", accountancy_code_supplier";
 					$sql .= ", accountancy_code_buy";
 					$sql .= ", accountancy_code_sell";
@@ -1642,7 +1662,9 @@ class Societe extends CommonObject
 					$sql .= $this->id;
 					$sql .= ", ".$conf->entity;
 					$sql .= ", ".(empty($this->vat_reverse_charge) ? '0' : '1');
+					$sql .= ", '".$this->db->escape($this->accountancy_code_customer_general)."'";
 					$sql .= ", '".$this->db->escape($this->code_compta_client)."'";
+					$sql .= ", '".$this->db->escape($this->accountancy_code_supplier_general)."'";
 					$sql .= ", '".$this->db->escape($this->code_compta_fournisseur)."'";
 					$sql .= ", '".$this->db->escape($this->accountancy_code_buy)."'";
 					$sql .= ", '".$this->db->escape($this->accountancy_code_sell)."'";
@@ -1745,10 +1767,14 @@ class Societe extends CommonObject
 		$sql .= ', s.fk_forme_juridique as forme_juridique_code';
 		$sql .= ', s.webservices_url, s.webservices_key, s.model_pdf, s.last_main_doc';
 		if (empty($conf->global->MAIN_COMPANY_PERENTITY_SHARED)) {
-			$sql .= ', s.code_compta, s.code_compta_fournisseur, s.accountancy_code_buy, s.accountancy_code_sell';
+			$sql .= ', s.accountancy_code_customer_general, s.code_compta';
+			$sql .= ', s.accountancy_code_supplier_general, s.code_compta_fournisseur';
+			$sql .= ', s.accountancy_code_buy, s.accountancy_code_sell';
 			$sql .= ', s.vat_reverse_charge as soc_vat_reverse_charge';
 		} else {
-			$sql .= ', spe.accountancy_code_customer as code_compta, spe.accountancy_code_supplier as code_compta_fournisseur, spe.accountancy_code_buy, spe.accountancy_code_sell';
+			$sql .= ', spe.accountancy_code_customer_general, spe.accountancy_code_customer as code_compta';
+			$sql .= ', spe.accountancy_code_supplier_general, spe.accountancy_code_supplier as code_compta_fournisseur';
+			$sql .= ', spe.accountancy_code_buy, spe.accountancy_code_sell';
 			$sql .= ', spe.vat_reverse_charge as spe_vat_reverse_charge';
 		}
 		$sql .= ', s.code_client, s.code_fournisseur, s.parent, s.barcode';
@@ -1895,8 +1921,10 @@ class Societe extends CommonObject
 				$this->code_client = $obj->code_client;
 				$this->code_fournisseur = $obj->code_fournisseur;
 
+				$this->accountancy_code_customer_general = $obj->accountancy_code_customer_general;
 				$this->code_compta = $obj->code_compta;			// For backward compatibility
 				$this->code_compta_client = $obj->code_compta;
+				$this->accountancy_code_supplier_general = $obj->accountancy_code_supplier_general;
 				$this->code_compta_fournisseur = $obj->code_compta_fournisseur;
 
 				$this->barcode = $obj->barcode;

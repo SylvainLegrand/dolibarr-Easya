@@ -101,7 +101,16 @@ if (empty($reshook)) {
 		$action = "";
 	}
 
-	// Set supplier accounting account
+	// set accountancy code
+	if ($action == 'setsupplieraccountancycodegeneral' && $user->hasRight('societe', 'creer')) {
+		$result = $object->fetch($id);
+		$object->accountancy_code_supplier_general = GETPOST("supplieraccountancycodegeneral");
+		$result = $object->update($object->id, $user, 1, 0, 1);
+		if ($result < 0) {
+			setEventMessages($object->error, $object->errors, 'errors');
+		}
+	}
+
 	if ($action == 'setsupplieraccountancycode' && $user->hasRight('societe', 'creer')) {
 		$result = $object->fetch($id);
 		$object->code_compta_fournisseur = GETPOST("supplieraccountancycode");
@@ -232,6 +241,8 @@ if ($object->id > 0) {
 	}
 
 	if ($object->fournisseur) {
+		$langs->loadLangs(array('accountancy', 'compta'));
+
 		print '<tr>';
 		print '<td class="titlefield">'.$langs->trans("SupplierCode").'</td><td>';
 		print showValueWithClipboardCPButton(dol_escape_htmltag($object->code_fournisseur));
@@ -242,7 +253,20 @@ if ($object->id > 0) {
 		print '</td>';
 		print '</tr>';
 
-		$langs->load('compta');
+		if (!empty($conf->accounting->enabled)) {
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/accounting.lib.php';
+
+			print '<tr>';
+			print '<td>';
+			print $form->editfieldkey("SupplierAccountancyCodeGeneral", 'supplieraccountancycodegeneral', length_accountg($object->accountancy_code_supplier_general), $object, $user->hasRight('societe', 'creer'));
+			print '</td><td>';
+			print $form->editfieldval("SupplierAccountancyCodeGeneral", 'supplieraccountancycodegeneral', length_accountg($object->accountancy_code_supplier_general), $object, $user->hasRight('societe', 'creer'));
+			$accountingAccountByDefault = " (" . $langs->trans("AccountingAccountByDefaultShort") . ": " . length_accountg(getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER')) . ")";
+			print getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER') ? $accountingAccountByDefault : '';
+			print '</td>';
+			print '</tr>';
+		}
+
 		print '<tr>';
 		print '<td>';
 		print $form->editfieldkey("SupplierAccountancyCode", 'supplieraccountancycode', $object->code_compta_fournisseur, $object, $user->hasRight('societe', 'creer'));
