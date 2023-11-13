@@ -850,6 +850,13 @@ $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters, $object); // Note that $action and $object may have been modified by hook
 $sql .= $hookmanager->resPrint;
 
+// Add GroupBy from hooks
+$parameters = array('all' => $all, 'fieldstosearchall' => $fieldstosearchall);
+$reshook = $hookmanager->executeHooks('printFieldListGroupBy', $parameters, $object); // Note that $action and $object may have been modified by hook
+if (!empty($hookmanager->resPrint)) {
+	$sql .= ' GROUP BY cf.rowid'. $hookmanager->resPrint;
+}
+
 $sql .= $db->order($sortfield, $sortorder);
 
 // Count total nb of records
