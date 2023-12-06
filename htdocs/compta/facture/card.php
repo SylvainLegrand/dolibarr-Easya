@@ -3157,6 +3157,10 @@ if ($action == 'create') {
    					// For company change, we must reuse data of comany, not input already done, so we call a GET with action=create, not a POST submit.
 					console.log("We have changed the company - Reload page");
 					var socid = $(this).val();
+					var projectid = "";
+					if ($(\'#projectid\').val() > 0) {
+						projectid = "&projectid="+$(\'#projectid\').val();
+					}
 			        var fac_rec = $(\'#fac_rec\').val();
         			window.location.href = "'.$_SERVER["PHP_SELF"].'?action=create&socid="+socid+"&fac_rec="+fac_rec;
 				});
