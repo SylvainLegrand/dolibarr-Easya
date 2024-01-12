@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MessDetectorOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PHPCSFixerOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PHPCodeSnifferOptionsConfiguration">
+    <option name="codingStandard" value="Custom" />
+    <option name="customRuleset" value="$PROJECT_DIR$/../dev/setup/codesniffer/ruleset.xml" />
+    <option name="installedPaths" value="$PROJECT_DIR$/../dev/setup/codesniffer" />
+    <option name="showSniffs" value="true" />
+    <option name="useInstalledPaths" value="true" />
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PhpCodeSniffer">
+    <phpcs_settings>
+      <PhpCSConfiguration standards="MySource;PEAR;PSR1;PSR12;PSR2;Squiz;Zend;codesniffer" tool_path="/usr/local/src/PHP_CodeSniffer/bin/phpcs" />
+    </phpcs_settings>
+  </component>
+  <component name="PhpIncludePathManager">
+    <include_path>
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/composer" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/ovh/ovh" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules/ovh/includes/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/symfony/deprecation-contracts" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/symfony/polyfill-ctype" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/symfony/polyfill-mbstring" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/symfony/polyfill-php80" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/composer" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/illuminate/pagination" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/illuminate/collections" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/illuminate/macroable" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/illuminate/contracts" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/nesbot/carbon" />
+      <path value="$PROJECT_DIR$/includes/webklex/php-imap/vendor/illuminate/support" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules_client/babymageproduct/vendor/phpseclib/phpseclib" />
+      <path value="$PROJECT_DIR$/../../modules_client/babymageproduct/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/openmetabase/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/sabre/dav" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/psr/log" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/sabre/xml" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/sabre/http" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/sabre/event" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/sabre/uri" />
+      <path value="$PROJECT_DIR$/../../modules/cdav/lib/SabreDAV/vendor/sabre/vobject" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/ecommerceng/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules_client/opendsi/vendor/tecnickcom/tcpdf" />
+      <path value="$PROJECT_DIR$/../../modules_client/opendsi/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules_client/opendsi/vendor/spipu/html2pdf" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules_client/mba/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/banking4dolibarr/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/opendsipartner/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules/rmpaap/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/rmpaap/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/rmpaap/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/rmpaap/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/rmpaap/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/rmpaap/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/phpseclib/phpseclib" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules_client/osvlink/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/demat4dolibarr/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/composer" />
+      <path value="$PROJECT_DIR$/../../modules/everysync/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/symfony/polyfill-php72" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/symfony/polyfill-php70" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/../../modules/sirene/vendor/symfony/polyfill-intl-idn" />
+    </include_path>
+  </component>
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.4">
+    <option name="suggestChangeDefaultLanguageLevel" value="false" />
+  </component>
+  <component name="PhpStanOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+  <component name="PsalmOptionsConfiguration">
+    <option name="transferred" value="true" />
+  </component>
+</project>

@@ -401,6 +401,7 @@ class AccountingAccount extends CommonObject
 	{
 		global $langs;
 
+		// TODO Looks a stupid check
 		$sql = "(SELECT fk_code_ventilation FROM ".MAIN_DB_PREFIX."facturedet";
 		$sql .= " WHERE fk_code_ventilation=".((int) $this->id).")";
 		$sql .= "UNION";
@@ -841,7 +842,7 @@ class AccountingAccount extends CommonObject
 					}
 					$suggestedid = $accountingAccount['dom']; // There is a doubt for this case. Is it an error on vat or we just forgot to fill vat number ?
 					$suggestedaccountingaccountfor = 'eecwithoutvatnumber';
-				} elseif ($isSellerInEEC && $isBuyerInEEC && !empty($product->accountancy_code_sell_intra)) {
+				} elseif ($isSellerInEEC && $isBuyerInEEC) {
 					// European intravat sale
 					if ($type == 'customer' && !empty($product->accountancy_code_sell_intra)) {
 						$code_p = $product->accountancy_code_sell_intra;

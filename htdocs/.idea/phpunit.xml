@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PHPUnit">
+    <option name="directories">
+      <list>
+        <option value="$PROJECT_DIR$/includes/webklex/php-imap/tests" />
+        <option value="$PROJECT_DIR$/includes/sabre/sabre/event/tests" />
+        <option value="$PROJECT_DIR$/../../modules/multicompany/lib/PHP_Markdown/tests" />
+        <option value="$PROJECT_DIR$/includes/sabre/sabre/xml/tests" />
+        <option value="$PROJECT_DIR$/../../modules/ovh/includes/ralouphie/getallheaders/tests" />
+        <option value="$PROJECT_DIR$/includes/stripe/stripe-php/tests" />
+        <option value="$PROJECT_DIR$/includes/maximebf/debugbar/tests" />
+        <option value="$PROJECT_DIR$/includes/sabre/sabre/uri/tests" />
+        <option value="$PROJECT_DIR$/includes/mobiledetect/mobiledetectlib/tests" />
+        <option value="$PROJECT_DIR$/../../modules/ovh/includes/guzzlehttp/psr7/tests" />
+        <option value="$PROJECT_DIR$/../../modules/ovh/includes/paragonie/random_compat/tests" />
+        <option value="$PROJECT_DIR$/includes/sabre/sabre/dav/tests" />
+        <option value="$PROJECT_DIR$/../../modules/ovh/includes/guzzlehttp/guzzle/tests" />
+        <option value="$PROJECT_DIR$/includes/sabre/sabre/vobject/tests" />
+        <option value="$PROJECT_DIR$/includes/parsedown/tests" />
+        <option value="$PROJECT_DIR$/includes/sabre/sabre/http/tests" />
+        <option value="$PROJECT_DIR$/includes/mike42/escpos-php/tests" />
+        <option value="$PROJECT_DIR$/../../modules/sirene/tests" />
+        <option value="$PROJECT_DIR$/../../modules/ecommerceng/includes/oauth-subscriber-woocommerce/tests" />
+        <option value="$PROJECT_DIR$/../../modules/ovh/includes/ovh/ovh/tests" />
+      </list>
+    </option>
+  </component>
+</project>

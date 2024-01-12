@@ -2352,6 +2352,10 @@ function top_menu_user($hideloginname = 0, $urllogout = '')
 	$dropdownBody .= '<span id="topmenuloginmoreinfo-btn"><i class="fa fa-caret-right"></i> '.$langs->trans("ShowMoreInfos").'</span>';
 	$dropdownBody .= '<div id="topmenuloginmoreinfo" >';
 
+	$dropdownBody .= '<br><b>'.$langs->trans("Easya").'</b>: <i class="fa fa-code-branch"></i> '.$conf->global->EASYA_VERSION;
+	$dropdownBody .= '<br><b>'.$langs->trans("Dolibarr").'</b>: <i class="fa fa-heart"></i> '.$conf->global->MAIN_VERSION_LAST_UPGRADE;
+	$dropdownBody .= '<br>';
+
 	// login infos
 	if (!empty($user->admin)) {
 		$dropdownBody .= '<br><b>'.$langs->trans("Administrator").'</b>: '.yn($user->admin);
@@ -2523,22 +2527,6 @@ function top_menu_user($hideloginname = 0, $urllogout = '')
 					closeTopMenuLoginDropdown();
                 }
             });
-
-	        jQuery(".butAction.dropdown-toggle").on("click", function(event) {
-				console.log("Click on .butAction.dropdown-toggle");
-				var parentholder = jQuery(".butAction.dropdown-toggle").closest(".dropdown");
-            	var offset = parentholder.offset();
-				var widthdocument = $(document).width();
-				var left = offset.left;
-				var right = widthdocument - offset.left - parentholder.width();
-				var widthpopup = parentholder.children(".dropdown-content").width();
-				console.log("left="+left+" right="+right+" width="+widthpopup+" widthdocument="+widthdocument);
-				if (widthpopup + right >= widthdocument) {
-					right = 10;
-				}
-	            parentholder.toggleClass("open");
-	            parentholder.children(".dropdown-content").css({"right": right+"px", "left": "auto"});
-	        });
 		';
 
 
