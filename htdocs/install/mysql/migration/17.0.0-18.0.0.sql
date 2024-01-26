@@ -581,3 +581,15 @@ ALTER TABLE llx_facture ADD COLUMN fk_input_reason integer NULL DEFAULT NULL AFT
 -- Product/service managed in stock
 ALTER TABLE llx_product ADD COLUMN stockable_product integer DEFAULT 1 NOT NULL;
 UPDATE llx_product set stockable_product = 0 WHERE type = 1;
+
+-- Dispatcher for virtual products
+ALTER TABLE llx_expeditiondet ADD COLUMN fk_parent integer NULL AFTER fk_origin_line;
+ALTER TABLE llx_expeditiondet ADD COLUMN fk_product integer NULL AFTER fk_parent;
+ALTER TABLE llx_expeditiondet ADD INDEX idx_expeditiondet_fk_parent (fk_parent);
+ALTER TABLE llx_expeditiondet ADD INDEX idx_expeditiondet_fk_poduct (fk_product);
+ALTER TABLE llx_expeditiondet ADD CONSTRAINT fk_expeditiondet_fk_parent FOREIGN KEY (fk_parent) REFERENCES llx_expeditiondet (rowid);
+ALTER TABLE llx_expeditiondet ADD CONSTRAINT fk_expeditiondet_fk_product FOREIGN KEY (fk_product) REFERENCES llx_product (rowid);
+
+UPDATE llx_expeditiondet as ed LEFT JOIN llx_commandedet as cd ON cd.rowid = ed.fk_origin_line SET ed.fk_product = cd.fk_product WHERE ed.fk_product IS NULL;
+ALTER TABLE llx_product_association ADD COLUMN incdec integer DEFAULT 1 AFTER qty; -- was removed on Easya 2022
+ALTER TABLE llx_expeditiondet_batch ADD COLUMN fk_warehouse integer DEFAULT NULL; -- added for compatibility
