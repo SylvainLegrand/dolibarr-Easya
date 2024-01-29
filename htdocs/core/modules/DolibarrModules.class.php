@@ -495,7 +495,7 @@ class DolibarrModules // Can not be abstract, because we need to instantiate it 
 				$ignoreerror = 0;
 				if (is_array($val)) {
 					$sql = $val['sql'];
-					$ignoreerror = $val['ignoreerror'];
+					$ignoreerror = $val['ignoreerror'] ?? '';
 				}
 				// Add current entity id
 				$sql = str_replace('__ENTITY__', $conf->entity, $sql);
