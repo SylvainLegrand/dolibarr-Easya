@@ -1295,14 +1295,8 @@ class FormFile
 					if ($filearray[$key]['rowid'] > 0) {
 						$lastrowid = $filearray[$key]['rowid'];
 					}
-					//$filepath = $file['level1name'].'/'.$file['name'];
-
-					$filepath = preg_replace('/^'.preg_quote(DOL_DATA_ROOT, '/').'/', '', $file['fullname']);
-					$filepath = preg_replace('/[\\/]$/', '', $filepath);
-					$filepath = preg_replace('/^[\\/]/', '', $filepath);
-					$modulepart = preg_replace('/\/(.+)/', '', $filepath);
-					$filepath = preg_replace('/^([^\/]+)/', '', $filepath);
-					$filepath = preg_replace('/^[\\/]/', '', $filepath);
+					$filepath = $file['level1name'].'/'.$file['name'];
+					$modulepart = basename(dirname($file['path']));
 					$relativepath = preg_replace('/\/(.+)/', '', $filepath) . '/';
 
 					$editline = 0;
@@ -1336,7 +1330,7 @@ class FormFile
 						print $relativepath;
 					}
 					//print dol_trunc($file['name'],$maxlength,'middle');
-					if (GETPOST('action', 'aZ09') == 'editfile' && $filepath == GETPOST('urlfile', 'alpha')) {
+					if (GETPOST('action', 'aZ09') == 'editfile' && $file['name'] == basename(GETPOST('urlfile', 'alpha')) && $file['level1name'] == dirname(GETPOST('urlfile', 'alpha'))) {
 						print '</a>';
 						$section_dir = dirname(GETPOST('urlfile', 'alpha'));
 						if (!preg_match('/\/$/', $section_dir)) {
@@ -1386,9 +1380,9 @@ class FormFile
 							}
 							//print $file['path'].'/'.$smallfile.'<br>';
 
-							$urlforhref = getAdvancedPreviewUrl($modulepart, $filepath, 1, '&entity='.(!empty($object->entity) ? $object->entity : $conf->entity));
+							$urlforhref = getAdvancedPreviewUrl($modulepart, $relativepath.$fileinfo['filename'].'.'.strtolower($fileinfo['extension']), 1, '&entity='.(empty($object->entity) ? $conf->entity : $object->entity));
 							if (empty($urlforhref)) {
-								$urlforhref = DOL_URL_ROOT.'/viewimage.php?modulepart='.$modulepart.'&entity='.(!empty($object->entity) ? $object->entity : $conf->entity).'&file='.urlencode($filepath);
+								$urlforhref = DOL_URL_ROOT.'/viewimage.php?modulepart='.$modulepart.'&entity='.(empty($object->entity) ? $conf->entity : $object->entity).'&file='.urlencode($relativepath.$fileinfo['filename'].'.'.strtolower($fileinfo['extension']));
 								print '<a href="'.$urlforhref.'" class="aphoto" target="_blank">';
 							} else {
 								print '<a href="'.$urlforhref['url'].'" class="'.$urlforhref['css'].'" target="'.$urlforhref['target'].'" mime="'.$urlforhref['mime'].'">';
