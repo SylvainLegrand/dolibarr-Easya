@@ -3284,7 +3284,7 @@ class Commande extends CommonOrder
 				}
 
 				// Mise a jour info denormalisees
-				$this->update_price(1);
+				$this->update_price(1, 'auto');
 
 				$this->db->commit();
 				return $result;
