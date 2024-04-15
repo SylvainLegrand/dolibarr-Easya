@@ -3971,7 +3971,6 @@ class Societe extends CommonObject
 				$isacompany = 0;
 			}
 		}
-
 		return $isacompany;
 	}
 
