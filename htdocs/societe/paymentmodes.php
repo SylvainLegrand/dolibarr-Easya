@@ -70,6 +70,8 @@ $extrafields->fetch_name_optionals_label($object->table_element);
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $hookmanager->initHooks(array('thirdpartybancard', 'globalcard'));
 
+$permissiontoadd = $user->rights->societe->creer;
+$permissiontoaddupdatepaymentinformation = $user->rights->societe->thirdparty_paymentinformation->write;
 
 if (!empty($conf->stripe->enabled)) {
 	$service = 'StripeTest';
@@ -455,7 +457,6 @@ if (empty($reshook)) {
 
 	$id = $socid;
 	$upload_dir = $conf->societe->multidir_output[$object->entity];
-	$permissiontoadd = $user->rights->societe->creer;
 	include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
 
 	$id = $savid;
@@ -703,7 +704,7 @@ if (empty($companybankaccount->socid)) {
 	$companybankaccount->socid = $object->id;
 }
 
-if ($socid && ($action == 'edit' || $action == 'editcard') && $user->rights->societe->creer) {
+if ($socid && ($action == 'edit' || $action == 'editcard') && $permissiontoaddupdatepaymentinformation) {
 	print '<form action="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'" method="post">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	$actionforadd = 'update';
@@ -713,7 +714,7 @@ if ($socid && ($action == 'edit' || $action == 'editcard') && $user->rights->soc
 	print '<input type="hidden" name="action" value="'.$actionforadd.'">';
 	print '<input type="hidden" name="id" value="'.GETPOST("id", "int").'">';
 }
-if ($socid && ($action == 'create' || $action == 'createcard') && $user->rights->societe->creer) {
+if ($socid && ($action == 'create' || $action == 'createcard') && $permissiontoaddupdatepaymentinformation) {
 	print '<form action="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'" method="post">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	$actionforadd = 'add';
@@ -787,12 +788,11 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 		}
 
 		if (!empty($conf->stripe->enabled)) {
-			$permissiontowrite = $user->rights->societe->creer;
 			// Stripe customer key 'cu_....' stored into llx_societe_account
 			print '<tr><td class="titlefield">';
-			print $form->editfieldkey("StripeCustomerId", 'key_account', $stripecu, $object, $permissiontowrite, 'string', '', 0, 2, 'socid');
+			print $form->editfieldkey("StripeCustomerId", 'key_account', $stripecu, $object, $permissiontoaddupdatepaymentinformation, 'string', '', 0, 2, 'socid');
 			print '</td><td>';
-			print $form->editfieldval("StripeCustomerId", 'key_account', $stripecu, $object, $permissiontowrite, 'string', '', null, null, '', 2, '', 'socid');
+			print $form->editfieldval("StripeCustomerId", 'key_account', $stripecu, $object, $permissiontoaddupdatepaymentinformation, 'string', '', null, null, '', 2, '', 'socid');
 			if (!empty($conf->stripe->enabled) && $stripecu && $action != 'editkey_account') {
 				$connect = '';
 				if (!empty($stripeacc)) {
@@ -849,14 +849,13 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 	}
 
 	if (!empty($conf->stripe->enabled) && !empty($conf->stripeconnect->enabled) && $conf->global->MAIN_FEATURES_LEVEL >= 2) {
-		$permissiontowrite = $user->rights->societe->creer;
 		$stripesupplieracc = $stripe->getStripeAccount($service, $object->id); // Get Stripe OAuth connect account (no network access here)
 
 		// Stripe customer key 'cu_....' stored into llx_societe_account
 		print '<tr><td class="titlefield">';
-		print $form->editfieldkey("StripeConnectAccount", 'key_account_supplier', $stripesupplieracc, $object, $permissiontowrite, 'string', '', 0, 2, 'socid');
+		print $form->editfieldkey("StripeConnectAccount", 'key_account_supplier', $stripesupplieracc, $object, $permissiontoaddupdatepaymentinformation, 'string', '', 0, 2, 'socid');
 		print '</td><td>';
-		print $form->editfieldval("StripeConnectAccount", 'key_account_supplier', $stripesupplieracc, $object, $permissiontowrite, 'string', '', null, null, '', 2, '', 'socid');
+		print $form->editfieldval("StripeConnectAccount", 'key_account_supplier', $stripesupplieracc, $object, $permissiontoaddupdatepaymentinformation, 'string', '', null, null, '', 2, '', 'socid');
 		if (!empty($conf->stripe->enabled) && $stripesupplieracc && $action != 'editkey_account_supplier') {
 			$connect = '';
 
@@ -1061,7 +1060,7 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 							print $hookmanager->resPrint;
 							// Action column
 							print '<td class="right nowraponall">';
-							if ($user->rights->societe->creer) {
+							if (!empty($permissiontoaddupdatepaymentinformation)) {
 								if ($stripecu && empty($companypaymentmodetemp->stripe_card_ref)) {
 									print '<a href="'.$_SERVER['PHP_SELF'].'?action=synccardtostripe&socid='.$object->id.'&id='.$companypaymentmodetemp->id.'" class="paddingrightonly marginrightonly">'.$langs->trans("CreateCardOnStripe").'</a>';
 								}
@@ -1214,7 +1213,7 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 				print $hookmanager->resPrint;
 				// Action column
 				print '<td class="right nowraponall">';
-				if ($user->rights->societe->creer) {
+				if (!empty($permissiontoaddupdatepaymentinformation)) {
 					print '<a href="'.DOL_URL_ROOT.'/societe/paymentmodes.php?socid='.$object->id.'&source='.$src->id.'&action=deletecard&token='.newToken().'">';
 					print img_picto($langs->trans("Delete"), 'delete');
 					print '</a>';
@@ -1281,8 +1280,11 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 	}
 
 	// List of bank accounts
-
-	$morehtmlright = dolGetButtonTitle($langs->trans('Add'), '', 'fa fa-plus-circle', $_SERVER["PHP_SELF"].'?socid='.$object->id.'&amp;action=create');
+	if ($permissiontoaddupdatepaymentinformation) {
+		$morehtmlright = dolGetButtonTitle($langs->trans('Add'), '', 'fa fa-plus-circle', $_SERVER["PHP_SELF"].'?socid='.$object->id.'&amp;action=create');
+	} else {
+		$morehtmlright = "";
+	}
 
 	print load_fiche_titre($langs->trans("BankAccounts"), $morehtmlright, 'bank');
 
@@ -1446,7 +1448,7 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 
 			// Edit/Delete
 			print '<td class="right nowraponall">';
-			if ($user->rights->societe->creer) {
+			if (!empty($permissiontoaddupdatepaymentinformation)) {
 				print '<a class="editfielda" href="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'&id='.$rib->id.'&action=edit">';
 				print img_picto($langs->trans("Modify"), 'edit');
 				print '</a>';
@@ -1486,10 +1488,8 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 		 */
 		$filedir = $conf->societe->multidir_output[$object->entity].'/'.$object->id;
 		$urlsource = $_SERVER["PHP_SELF"]."?socid=".$object->id;
-		$genallowed = $user->rights->societe->lire;
-		$delallowed = $user->rights->societe->creer;
 
-		print $formfile->showdocuments('company', $object->id, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 0, 0, 0, 28, 0, 'entity='.$object->entity, 0, '', $object->default_lang);
+		print $formfile->showdocuments('company', $object->id, $filedir, $urlsource, $permissiontoread, $permissiontoaddupdatepaymentinformation, $object->model_pdf, 0, 0, 0, 28, 0, 'entity='.$object->entity, 0, '', $object->default_lang);
 
 		// Show direct download link
 		if (!empty($conf->global->BANK_ACCOUNT_ALLOW_EXTERNAL_DOWNLOAD)) {
@@ -1536,7 +1536,7 @@ if ($socid && $action != 'edit' && $action != 'create' && $action != 'editcard' 
 }
 
 // Edit BAN
-if ($socid && $action == 'edit' && $user->rights->societe->creer) {
+if ($socid && $action == 'edit' && $permissiontoaddupdatepaymentinformation) {
 	print dol_get_fiche_head($head, 'rib', $langs->trans("ThirdParty"), 0, 'company');
 
 	$linkback = '<a href="'.DOL_URL_ROOT.'/societe/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
@@ -1659,7 +1659,7 @@ if ($socid && $action == 'edit' && $user->rights->societe->creer) {
 }
 
 // Edit Card
-if ($socid && $action == 'editcard' && $user->rights->societe->creer) {
+if ($socid && $action == 'editcard' && $permissiontoaddupdatepaymentinformation) {
 	print dol_get_fiche_head($head, 'rib', $langs->trans("ThirdParty"), 0, 'company');
 
 	$linkback = '<a href="'.DOL_URL_ROOT.'/societe/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
@@ -1706,7 +1706,7 @@ if ($socid && $action == 'editcard' && $user->rights->societe->creer) {
 
 
 // Create BAN
-if ($socid && $action == 'create' && $user->rights->societe->creer) {
+if ($socid && $action == 'create' && $permissiontoaddupdatepaymentinformation) {
 	print dol_get_fiche_head($head, 'rib', $langs->trans("ThirdParty"), 0, 'company');
 
 	$linkback = '<a href="'.DOL_URL_ROOT.'/societe/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
@@ -1825,7 +1825,7 @@ if ($socid && $action == 'create' && $user->rights->societe->creer) {
 }
 
 // Create Card
-if ($socid && $action == 'createcard' && $user->rights->societe->creer) {
+if ($socid && $action == 'createcard' && $permissiontoaddupdatepaymentinformation) {
 	print dol_get_fiche_head($head, 'rib', $langs->trans("ThirdParty"), 0, 'company');
 
 	$linkback = '<a href="'.DOL_URL_ROOT.'/societe/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
@@ -1873,10 +1873,10 @@ if ($socid && $action == 'createcard' && $user->rights->societe->creer) {
 	print '</div>';
 }
 
-if ($socid && ($action == 'edit' || $action == 'editcard') && $user->rights->societe->creer) {
+if ($socid && ($action == 'edit' || $action == 'editcard') && $permissiontoaddupdatepaymentinformation) {
 	print '</form>';
 }
-if ($socid && ($action == 'create' || $action == 'createcard') && $user->rights->societe->creer) {
+if ($socid && ($action == 'create' || $action == 'createcard') && $permissiontoaddupdatepaymentinformation) {
 	print '</form>';
 }
 
