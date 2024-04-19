@@ -1593,8 +1593,15 @@ if (empty($reshook)) {
 									0,
 									0,
 									0,
-									0
-									//,$langs->trans('Deposit') //Deprecated
+									0,
+									'',
+									0,
+									100,
+									0,
+									null,
+									0,
+									'',
+									1
 								);
 							}
 
@@ -1761,7 +1768,10 @@ if (empty($reshook)) {
 											$array_options,
 											$lines[$i]->situation_percent,
 											$lines[$i]->fk_prev_id,
-											$lines[$i]->fk_unit
+											$lines[$i]->fk_unit,
+											0,
+											'',
+											1
 										);
 
 										if ($result > 0) {
@@ -1783,6 +1793,8 @@ if (empty($reshook)) {
 								$error++;
 							}
 						}
+
+						$object->update_price(1, 'auto', 0, $mysoc);
 
 						// Now we create same links to contact than the ones found on origin object
 						/* Useless, already into the create
@@ -1831,9 +1843,11 @@ if (empty($reshook)) {
 							$product->fetch(GETPOST('idprod'.$i, 'int'));
 							$startday = dol_mktime(12, 0, 0, GETPOST('date_start'.$i.'month'), GETPOST('date_start'.$i.'day'), GETPOST('date_start'.$i.'year'));
 							$endday = dol_mktime(12, 0, 0, GETPOST('date_end'.$i.'month'), GETPOST('date_end'.$i.'day'), GETPOST('date_end'.$i.'year'));
-							$result = $object->addline($product->description, $product->price, price2num(GETPOST('qty'.$i), 'MS'), $product->tva_tx, $product->localtax1_tx, $product->localtax2_tx, GETPOST('idprod'.$i, 'int'), price2num(GETPOST('remise_percent'.$i), '', 2), $startday, $endday, 0, 0, '', $product->price_base_type, $product->price_ttc, $product->type, -1, 0, '', 0, 0, null, 0, '', 0, 100, '', $product->fk_unit);
+							$result = $object->addline($product->description, $product->price, price2num(GETPOST('qty'.$i), 'MS'), $product->tva_tx, $product->localtax1_tx, $product->localtax2_tx, GETPOST('idprod'.$i, 'int'), price2num(GETPOST('remise_percent'.$i), '', 2), $startday, $endday, 0, 0, '', $product->price_base_type, $product->price_ttc, $product->type, -1, 0, '', 0, 0, null, 0, '', 0, 100, '', $product->fk_unit, 0, '', 1);
 						}
 					}
+
+					$object->update_price(1, 'auto', 0, $mysoc);
 				}
 			}
 		}
@@ -2803,18 +2817,6 @@ if (empty($reshook)) {
 	$permissiontoadd = $usercancreate;
 	include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
 
-	// Make calculation according to calculationrule
-	if ($action == 'calculate') {
-		$calculationrule = GETPOST('calculationrule');
-
-		$object->fetch($id);
-		$object->fetch_thirdparty();
-		$result = $object->update_price(0, (($calculationrule == 'totalofround') ? '0' : '1'), 0, $object->thirdparty);
-		if ($result <= 0) {
-			dol_print_error($db, $result);
-			exit;
-		}
-	}
 	if ($action == 'update_extras') {
 		$object->oldcopy = dol_clone($object);
 
@@ -4766,28 +4768,7 @@ if ($action == 'create') {
 	// Vat
 	print '<tr><td>'.$langs->trans('AmountVAT').'</td>';
 	print '<td class="nowrap right amountcard">';
-
-	print '<div class="inline-block">';
-	if (GETPOST('calculationrule')) {
-		$calculationrule = GETPOST('calculationrule', 'alpha');
-	} else {
-		$calculationrule = (empty($conf->global->MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND) ? 'totalofround' : 'roundoftotal');
-	}
-	if ($calculationrule == 'totalofround') {
-		$calculationrulenum = 1;
-	} else {
-		$calculationrulenum = 2;
-	}
-	// Show link for "recalculate"
-	if ($object->getVentilExportCompta() == 0) {
-		$s = $langs->trans("ReCalculate").' ';
-		$s .= '<a href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=calculate&calculationrule=totalofround">'.$langs->trans("Mode1").'</a>';
-		$s .= ' / ';
-		$s .= '<a href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=calculate&calculationrule=roundoftotal">'.$langs->trans("Mode2").'</a>';
-		print $form->textwithtooltip($s, $langs->trans("CalculationRuleDesc", $calculationrulenum), 2, 1, img_picto('', 'help'));
-	}
-	print '</div>';
-	print  "&nbsp; &nbsp; &nbsp; &nbsp; ".price($sign * $object->total_tva, 1, $langs, 1, -1, -1, $conf->currency);
+	print  price($sign * $object->total_tva, 1, $langs, 1, -1, -1, $conf->currency);
 	print '</td></tr>';
 	// Amount Local Taxes
 	if (($mysoc->localtax1_assuj == "1" && $mysoc->useLocalTax(1)) || $object->total_localtax1 != 0) { 	// Localtax1
