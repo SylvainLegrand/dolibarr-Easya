@@ -139,7 +139,7 @@ $coldisplay++;
 	}
 
 	// Do not allow editing during a situation cycle
-	if (!$situationinvoicelinewithparent) {
+	if (!$situationinvoicelinewithparent || !empty($conf->global->FACTURE_SITUATION_ALLOW_EDITING_DESCRIPTION)) {
 		// editor wysiwyg
 		require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
 		$nbrows = ROWS_2;
