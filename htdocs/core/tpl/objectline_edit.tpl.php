@@ -167,7 +167,7 @@ $coldisplay++;
 		}
 	}
 
-	// Show autofill date for recuring invoices
+	// Show autofill date for recurring invoices
 	if (!empty($conf->service->enabled) && $line->product_type == 1 && $line->element == 'facturedetrec') {
 		echo '<br>';
 		echo $langs->trans('AutoFillDateFrom').' ';
