@@ -316,6 +316,13 @@ if (!$error && $massaction == 'confirm_presend') {
 						$fileparams = dol_most_recent_file($uploaddir.'/'.get_exdir($objectobj->id, 2, 0, 0, $objectobj, $objectobj->element).$objectobj->ref, preg_quote($objectobj->ref, '/').'([^\-])+');
 						$filepath = $fileparams['fullname'];
 					}
+					if (!empty($conf->global->ESAYA_SEND_EMAIL_IN_MASS_MOST_RECENT_FILE_IF_NOT_FOUND) && !dol_is_file($filepath)) {
+						$fileparams = dol_most_recent_file($filedir, preg_quote($objectobj->ref, '/') . '([^\-])+' . (!empty($conf->global->MAIN_ODT_AS_PDF) ? '\.pdf$' : ''));
+						if (isset($fileparams)) {
+							$filepath = $fileparams['fullname'];
+							$filename = $fileparams['name'];
+						}
+					}
 
 					// try to find other files generated for this object (last_main_doc)
 					$filename_found = '';

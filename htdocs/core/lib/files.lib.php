@@ -232,6 +232,9 @@ function dol_dir_list($path, $types = "all", $recursive = 0, $filter = "", $excl
 function dol_dir_list_in_database($path, $filter = "", $excludefilter = null, $sortcriteria = "name", $sortorder = SORT_ASC, $mode = 0)
 {
 	global $conf, $db;
+	/**
+	 * @var DoliDB $db
+	 */
 
 	$sql = " SELECT rowid, label, entity, filename, filepath, fullpath_orig, keywords, cover, gen_or_uploaded, extraparams,";
 	$sql .= " date_c, tms as date_m, fk_user_c, fk_user_m, acl, position, share";
@@ -309,6 +312,9 @@ function dol_dir_list_in_database($path, $filter = "", $excludefilter = null, $s
 function completeFileArrayWithDatabaseInfo(&$filearray, $relativedir)
 {
 	global $conf, $db, $user;
+	/**
+	 * @var DoliDB $db
+	 */
 
 	$filearrayindatabase = dol_dir_list_in_database($relativedir, '', null, 'name', SORT_ASC);
 
@@ -327,6 +333,15 @@ function completeFileArrayWithDatabaseInfo(&$filearray, $relativedir)
 			$relativedirold = preg_replace('/^[\\/]/', '', $relativedirold);
 
 			$filearrayindatabase = array_merge($filearrayindatabase, dol_dir_list_in_database($relativedirold, '', null, 'name', SORT_ASC));
+		}
+	} elseif ($modulepart == 'ticket') {
+		foreach ($filearray as $key => $val) {
+			$rel_dir = preg_replace('/^'.preg_quote(DOL_DATA_ROOT, '/').'/', '', $filearray[$key]['path']);
+			$rel_dir = preg_replace('/[\\/]$/', '', $rel_dir);
+			$rel_dir = preg_replace('/^[\\/]/', '', $rel_dir);
+			if ($rel_dir != $relativedir) {
+				$filearrayindatabase = array_merge($filearrayindatabase, dol_dir_list_in_database($rel_dir, '', null, 'name', SORT_ASC));
+			}
 		}
 	}
 
@@ -381,7 +396,7 @@ function completeFileArrayWithDatabaseInfo(&$filearray, $relativedir)
 				$ecmfile->keywords = ''; // keyword content
 				$result = $ecmfile->create($user);
 				if ($result < 0) {
-					setEventMessages($ecmfile->error, $ecmfile->errors, 'warnings');
+						setEventMessages($ecmfile->error, $ecmfile->errors, 'warnings');
 				} else {
 					$filearray[$key]['rowid'] = $result;
 				}
