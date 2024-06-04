@@ -1210,7 +1210,7 @@ class Product extends CommonObject
 				// Multilangs
 				if (!empty($conf->global->MAIN_MULTILANGS)) {
 					if ($this->setMultiLangs($user) < 0) {
-						$this->error = $langs->trans("Error")." : ".$this->db->error()." - ".$sql;
+//						$this->error = $langs->trans("Error")." : ".$this->db->error()." - ".$sql;
 						return -2;
 					}
 				}
