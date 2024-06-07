@@ -2298,6 +2298,9 @@ function dol_check_secure_access_document($modulepart, $original_file, $entity, 
 	if ($modulepart == 'tva') {
 		$modulepart = 'tax-vat';
 	}
+	if ($modulepart == 'agenda') {
+		$modulepart = 'actions';
+	}
 
 	//print 'dol_check_secure_access_document modulepart='.$modulepart.' original_file='.$original_file.' entity='.$entity;
 	dol_syslog('dol_check_secure_access_document modulepart='.$modulepart.' original_file='.$original_file.' entity='.$entity);
