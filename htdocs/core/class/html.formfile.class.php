@@ -1295,14 +1295,7 @@ class FormFile
 					if ($filearray[$key]['rowid'] > 0) {
 						$lastrowid = $filearray[$key]['rowid'];
 					}
-					if ($modulepart!=='facture_fournisseur') {
-						$filepath = $file['level1name'].'/'.$file['name'];
-						$modulepart = basename(dirname($file['path']));
-						$relativepath = preg_replace('/\/(.+)/', '', $filepath) . '/';
-					} else {
-						$filepath = $relativepath.$file['name'];
-					}
-
+					$filepath = $relativepath.$file['name'];
 
 					$editline = 0;
 					$nboflines++;
