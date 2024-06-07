@@ -412,7 +412,6 @@ if (empty($reshook)) {
 		$result = $object->setMulticurrencyRate(price2num(GETPOST('multicurrency_tx')), GETPOST('calculation_mode', 'int'));
 	} elseif ($action == 'setinvoicedate' && $usercancreate) {
 		$object->fetch($id);
-		$old_date_lim_reglement = $object->date_lim_reglement;
 		$newdate = dol_mktime(0, 0, 0, GETPOST('invoicedatemonth', 'int'), GETPOST('invoicedateday', 'int'), GETPOST('invoicedateyear', 'int'), 'tzserver');
 		if (empty($newdate)) {
 			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Date")), null, 'errors');
@@ -428,10 +427,7 @@ if (empty($reshook)) {
 		}
 
 		$object->date = $newdate;
-		$new_date_lim_reglement = $object->calculate_date_lim_reglement();
-		if ($new_date_lim_reglement > $old_date_lim_reglement) {
-			$object->date_lim_reglement = $new_date_lim_reglement;
-		}
+		$object->date_lim_reglement = $object->calculate_date_lim_reglement();
 		if ($object->date_lim_reglement < $object->date) {
 			$object->date_lim_reglement = $object->date;
 		}
