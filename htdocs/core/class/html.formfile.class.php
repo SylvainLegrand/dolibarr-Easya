@@ -1295,7 +1295,6 @@ class FormFile
 					if ($filearray[$key]['rowid'] > 0) {
 						$lastrowid = $filearray[$key]['rowid'];
 					}
-					$filepath = $file['level1name'].'/'.$file['name'];
 					if ($modulepart!=='facture_fournisseur') {
 						$filepath = $file['level1name'].'/'.$file['name'];
 						$modulepart = basename(dirname($file['path']));
