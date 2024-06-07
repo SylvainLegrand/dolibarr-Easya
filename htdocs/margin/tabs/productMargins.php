@@ -73,7 +73,9 @@ if (empty($user->rights->margins->liretous)) {
 $invoicestatic = new Facture($db);
 
 $form = new Form($db);
-
+$totalMargin = 0;
+$marginRate = '';
+$markRate = '';
 if ($id > 0 || !empty($ref)) {
 	$result = $object->fetch($id, $ref);
 
