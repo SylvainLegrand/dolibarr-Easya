@@ -3009,7 +3009,7 @@ abstract class CommonObject
 				while ($i < $num) {
 					$row = $this->db->fetch_row($resql);
 					$rows[] = $row[0]; // Add parent line into array rows
-					$childrens = $this->getChildrenOfLine($row[0]);
+					$childrens = $this->getChildrenOfLine($row[0], 1);
 					if (!empty($childrens)) {
 						foreach ($childrens as $child) {
 							array_push($rows, $child);
@@ -3059,7 +3059,7 @@ abstract class CommonObject
 				while ($row = $this->db->fetch_row($resql)) {
 					$rows[] = $row[0];
 					if (!empty($includealltree)) {
-						$rows = array_merge($rows, $this->getChildrenOfLine($row[0]), $includealltree);
+						$rows = array_merge($rows, $this->getChildrenOfLine($row[0], $includealltree));
 					}
 				}
 			}
