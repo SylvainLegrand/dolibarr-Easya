@@ -250,61 +250,91 @@ class AutoLoader
         return $file;
     }
 
-    /**
-     * Load from rogueLoaders as last resort.
-     * It may happen that a custom auto loader may load classes in a unique way,
-     * these classes cannot be seen otherwise nor should we attempt to cover every
-     * possible deviation. If we still can't find a class, as a last resort, we will
-     * run through the list of rogue loaders and verify if we succeeded.
-     *
-     * @param      $className string className that can't be found
-     * @param null $loader callable loader optional when the loader is known
-     *
-     * @return bool false unless className now exists
-     */
-    private function loadLastResort($className, $loader = null) {
-        $loaders = array_unique(static::$rogueLoaders, SORT_REGULAR);
-        if (isset($loader)) {
-            if (false === array_search($loader, $loaders))
-                static::$rogueLoaders[] = $loader;
-            return $this->loadThisLoader($className, $loader);
-        }
-        foreach ($loaders as $loader)
-            if (false !== $file = $this->loadThisLoader($className, $loader))
-                return $file;
+		/**
+		 * Load from rogueLoaders as last resort.
+		 * It may happen that a custom auto loader may load classes in a unique way,
+		 * these classes cannot be seen otherwise nor should we attempt to cover every
+		 * possible deviation. If we still can't find a class, as a last resort, we will
+		 * run through the list of rogue loaders and verify if we succeeded.
+		 *
+		 * @param      $className string className that can't be found
+		 * @param null $loader callable loader optional when the loader is known
+		 *
+		 * @return bool false unless className now exists
+		 */
+		private function loadLastResort($className, $loader = null)
+		{
+			$loaders = array_unique(static::$rogueLoaders, SORT_REGULAR);
+			if (isset($loader)) {
+				if (false === array_search($loader, $loaders))
+				static::$rogueLoaders[] = $loader;
+				return $this->loadThisLoader($className, $loader);
+			}
+			foreach ($loaders as $loader)
+				if (false !== $file = $this->loadThisLoader($className, $loader))
+					return $file;
 
         return false;
     }
 
-    /**
-     * Helper for loadLastResort.
-     * Use loader with $className and see if className exists.
-     *
-     * @param $className string   name of a class to load
-     * @param $loader    callable autoLoader method
-     *
-     * @return bool false unless className exists
-     */
-    private function loadThisLoader($className, $loader)
-    {
-        if (is_array($loader)
-            && is_callable($loader)) {
-            $b = new $loader[0];
-			//avoid PHP Fatal error:  Uncaught Error: Access to undeclared static property: Composer\\Autoload\\ClassLoader::$loader
-			//in case of multiple autoloader systems
-			if(property_exists($b, $loader[1])) {
-				if (false !== $file = $b::$loader[1]($className)
-					&& $this->exists($className, $b::$loader[1])) {
-				return $file;
+		/**
+		 * Helper for loadLastResort.
+		 * Use loader with $className and see if className exists.
+		 *
+		 * @param $className string   name of a class to load
+		 * @param $loader    callable autoLoader method
+		 *
+		 * @return bool false unless className exists
+		 */
+		private function loadThisLoader($className, $loader)
+		{
+			if (is_array($loader)
+				&& is_callable($loader)) {
+					$b = new $loader[0];
+					//avoid PHP Fatal error:  Uncaught Error: Access to undeclared static property: Composer\\Autoload\\ClassLoader::$loader
+					//in case of multiple autoloader systems
+					if (property_exists($b, $loader[1])) {
+						if (false !== $file = $b::$loader[1]($className)
+							&& $this->exists($className, $b::$loader[1])) {
+								return $file;
+							}
+					}
+				} elseif (is_callable($loader)
+					&& false !== $file = $loader($className)
+					&& $this->exists($className, $loader)) {
+						return $file;
+				}
+				return false;
+
+			/* other code tested to reduce autoload conflict
+			$s = '';
+			if (is_array($loader)
+			&& is_callable($loader)) {
+				// @CHANGE DOL avoid autoload conflict
+				if (!preg_match('/LuraCast/', get_class($loader[0]))) {
+					return false;
+				}
+				$b = new $loader[0];
+				// @CHANGE DOL avoid PHP Fatal error:  Uncaught Error: Access to undeclared static property: Composer\\Autoload\\ClassLoader::$loader
+				//in case of multiple autoloader systems
+				if (property_exists($b, $loader[1])) {
+					if (false !== $file = $b::$loader[1]($className)
+						&& $this->exists($className, $b::$loader[1])) {
+							return $file;
+						}
+				}
+			} elseif (is_callable($loader, false, $s)) {
+				// @CHANGE DOL avoid PHP infinite loop (detected when xdebug is on)
+				if ($s == 'Luracast\Restler\AutoLoader::__invoke') {
+					return false;
+				}
+				if (false !== ($file = $loader($className)) && $this->exists($className, $loader)) {
+					return $file;
 				}
 			}
-        } elseif (is_callable($loader)
-            && false !== $file = $loader($className)
-                && $this->exists($className, $loader)) {
-            return $file;
-        }
-        return false;
-    }
+			return false;
+			*/
+		}
 
     /**
      * Create an alias for class.
@@ -420,7 +450,7 @@ class AutoLoader
         if (false !== $includeReference = $this->discover($className))
             return $includeReference;
 
-        static::thereCanBeOnlyOne();
+			//static::thereCanBeOnlyOne();
 
         if (false !== $includeReference = $this->loadAliases($className))
             return $includeReference;
@@ -428,8 +458,8 @@ class AutoLoader
         if (false !== $includeReference = $this->loadPrefixes($className))
             return $includeReference;
 
-        if (false !== $includeReference = $this->loadLastResort($className))
-            return $includeReference;
+			if (false !== $includeReference = $this->loadLastResort($className))
+				return $includeReference;
 
         static::seen($className, true);
         return null;
