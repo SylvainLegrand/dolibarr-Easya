@@ -3009,7 +3009,7 @@ abstract class CommonObject
 				while ($i < $num) {
 					$row = $this->db->fetch_row($resql);
 					$rows[] = $row[0]; // Add parent line into array rows
-					$childrens = $this->getChildrenOfLine($row[0]);
+					$childrens = $this->getChildrenOfLine($row[0], 1);
 					if (!empty($childrens)) {
 						foreach ($childrens as $child) {
 							array_push($rows, $child);
@@ -3059,7 +3059,7 @@ abstract class CommonObject
 				while ($row = $this->db->fetch_row($resql)) {
 					$rows[] = $row[0];
 					if (!empty($includealltree)) {
-						$rows = array_merge($rows, $this->getChildrenOfLine($row[0]), $includealltree);
+						$rows = array_merge($rows, $this->getChildrenOfLine($row[0], $includealltree));
 					}
 				}
 			}
@@ -3499,6 +3499,12 @@ abstract class CommonObject
 			$fieldup = 'pu_ht';
 		}
 		if ($this->element == 'expensereport') {
+			// force rounding mode to 1
+			// otherwise when you set MAIN_ROUNDOFTOTAL_NOT_TOTALOFROUND to 1
+			// you have 2 lines with same TTC amounts (6,2 Unit price TTC and VAT rate 20%)
+			// on the first line you got 5,17 on HT total
+			// when you got 5,16 on HT total and 1,04 on VAT total to get 6,20 on TTT total (see #30051)
+			$forcedroundingmode = '0';
 			$fieldup = 'value_unit';
 			$base_price_type = 'TTC';
 		}
@@ -3603,7 +3609,11 @@ abstract class CommonObject
 				$total_ttc_by_vats[$obj->vatrate] += $obj->total_ttc;
 
 				if ($forcedroundingmode == '1') {	// Check if we need adjustement onto line for vat. TODO This works on the company currency but not on multicurrency
-					$tmpvat = price2num($total_ht_by_vats[$obj->vatrate] * $obj->vatrate / 100, 'MT', 1);
+					if ($base_price_type == 'TTC') {
+						$tmpvat = price2num($total_ttc_by_vats[$obj->vatrate] * $obj->vatrate / (100 + $obj->vatrate), 'MT', 1);
+					} else {
+						$tmpvat = price2num($total_ht_by_vats[$obj->vatrate] * $obj->vatrate / 100, 'MT', 1);
+					}
 					$diff = price2num($total_tva_by_vats[$obj->vatrate] - $tmpvat, 'MT', 1);
 					//print 'Line '.$i.' rowid='.$obj->rowid.' vat_rate='.$obj->vatrate.' total_ht='.$obj->total_ht.' total_tva='.$obj->total_tva.' total_ttc='.$obj->total_ttc.' total_ht_by_vats='.$total_ht_by_vats[$obj->vatrate].' total_tva_by_vats='.$total_tva_by_vats[$obj->vatrate].' (new calculation = '.$tmpvat.') total_ttc_by_vats='.$total_ttc_by_vats[$obj->vatrate].($diff?" => DIFF":"")."<br>\n";
 					if ($diff) {
@@ -3613,8 +3623,13 @@ abstract class CommonObject
 							dol_print_error('', $errmsg);
 							exit;
 						}
-						$sqlfix = "UPDATE ".MAIN_DB_PREFIX.$this->table_element_line." SET ".$fieldtva." = ".($obj->total_tva - $diff).", total_ttc = ".($obj->total_ttc - $diff)." WHERE rowid = ".$obj->rowid;
-						dol_syslog('We found a difference of '.$diff.' for line rowid = '.$obj->rowid.". We fix the total_vat and total_ttc of line by running sqlfix = ".$sqlfix);
+						if ($base_price_type == 'TTC') {
+							$sqlfix = "UPDATE ".$this->db->prefix().$this->table_element_line." SET ".$fieldtva." = ".price2num($obj->total_tva - (float) $diff).", total_ht = ".price2num($obj->total_ht + (float) $diff)." WHERE rowid = ".((int) $obj->rowid);
+							dol_syslog('We found a difference of '.$diff.' for line rowid = '.$obj->rowid.". We fix the total_vat and total_ht of line by running sqlfix = ".$sqlfix);
+						} else {
+							$sqlfix = "UPDATE ".MAIN_DB_PREFIX.$this->table_element_line." SET ".$fieldtva." = ".($obj->total_tva - $diff).", total_ttc = ".($obj->total_ttc - $diff)." WHERE rowid = ".$obj->rowid;
+							dol_syslog('We found a difference of '.$diff.' for line rowid = '.$obj->rowid.". We fix the total_vat and total_ttc of line by running sqlfix = ".$sqlfix);
+						}
 
 						$resqlfix = $this->db->query($sqlfix);
 
@@ -3623,9 +3638,14 @@ abstract class CommonObject
 						}
 
 						$this->total_tva = (float) price2num($this->total_tva - $diff, '', 1);
-						$this->total_ttc = (float) price2num($this->total_ttc - $diff, '', 1);
 						$total_tva_by_vats[$obj->vatrate] = (float) price2num($total_tva_by_vats[$obj->vatrate] - $diff, '', 1);
-						$total_ttc_by_vats[$obj->vatrate] = (float) price2num($total_ttc_by_vats[$obj->vatrate] - $diff, '', 1);
+						if ($base_price_type == 'TTC') {
+							$this->total_ht = (float) price2num($this->total_ht + (float) $diff, '', 1);
+							$total_ht_by_vats[$obj->vatrate] = (float) price2num($total_ht_by_vats[$obj->vatrate] + (float) $diff, '', 1);
+						} else {
+							$this->total_ttc = (float) price2num($this->total_ttc - $diff, '', 1);
+							$total_ttc_by_vats[$obj->vatrate] = (float) price2num($total_ttc_by_vats[$obj->vatrate] - $diff, '', 1);
+						}
 					}
 				}
 
