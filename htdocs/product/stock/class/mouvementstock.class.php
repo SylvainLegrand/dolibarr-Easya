@@ -1253,4 +1253,34 @@ class MouvementStock extends CommonObject
 
 		return $cpt;
 	}
+
+	/**
+	 * Retrieve date of last stock movement for 
+	 * 
+	 * @param     int      $fk_entrepot
+	 * @param     int      $fk_product
+	 * @param     string   $batch
+	 * @return    int      <0 if KO, date of last stock movement found if OK
+	 */
+	public function getDateLastMovementProductBatch($fk_entrepot, $fk_product, $batch) 
+	{
+		$sql = 	"SELECT MAX(datem) as datem";
+		$sql .= " FROM ".MAIN_DB_PREFIX."stock_mouvement";
+		$sql .= " WHERE fk_product = " . ((int) $fk_product);
+		$sql .= " AND fk_entrepot  = " .((int) $fk_entrepot);
+		$sql .= " AND batch = '" . $this->db->escape($batch) . "'";
+
+		$result = $this->db->query($sql);
+		if ($result) {
+			if ($this->db->num_rows($result)) {
+				$obj = $this->db->fetch_object($result);
+			}
+			$this->db->free($result);
+		} else {
+			dol_print_error($this->db);
+			return -1;
+		}
+
+		return $obj->datem;
+	}
 }
