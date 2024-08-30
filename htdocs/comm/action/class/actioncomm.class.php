@@ -810,7 +810,7 @@ class ActionComm extends CommonObject
 				$this->type       = $obj->type_type;
 				/*$transcode = $langs->trans("Action".$obj->type_code);
 				$this->type       = (($transcode != "Action".$obj->type_code) ? $transcode : $obj->type_label); */
-				$transcode = $langs->trans("Action".$obj->type_code.'Short');
+				$transcode = (isset($langs) ? $langs->trans("Action".$obj->type_code.'Short') : '');
 				$this->type_short = (($transcode != "Action".$obj->type_code.'Short') ? $transcode : '');
 
 				$this->code = $obj->code;
