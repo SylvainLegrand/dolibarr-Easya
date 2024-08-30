@@ -1323,6 +1323,7 @@ class FormFile
 
 					$editline = 0;
 					$nboflines++;
+
 					print '<!-- Line list_of_documents '.$key.' relativepath = '.$relativepath.' -->'."\n";
 					// Do we have entry into database ?
 					print '<!-- In database: position='.$filearray[$key]['position'].' -->'."\n";
@@ -1330,7 +1331,6 @@ class FormFile
 
 					// File name
 					print '<td class="minwith200">';
-
 					// Preview link
 					if (!$editline) {
 						print $this->showPreview($file, $modulepart, $filepath, 0, '&entity='.(!empty($object->entity) ? $object->entity : $conf->entity), 'paddingright') . "\n";
