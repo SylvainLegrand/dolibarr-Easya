@@ -1933,9 +1933,10 @@ if ($id > 0) {
 
 		// Type
 		if (!empty($conf->global->AGENDA_USE_EVENT_TYPE)) {
+			$labeltype = ($langs->transnoentities("Action".$object->type_code) != "Action".$object->type_code) ? $langs->transnoentities("Action".$object->type_code) : $object->type_label;
 			print '<tr><td class="titlefield">'.$langs->trans("Type").'</td><td>';
 			print $object->getTypePicto();
-			print $langs->trans("Action".$object->type_code);
+			print $labeltype;
 			print '</td></tr>';
 		}
 
