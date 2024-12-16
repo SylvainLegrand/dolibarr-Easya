@@ -253,6 +253,9 @@ class Paiement extends CommonObject
 		$currencyofpayment = '';
 		$currencytxofpayment = '';
 		foreach ($amounts as $key => $value) {	// How payment is dispatch
+			if (empty($value)) {
+				continue;
+			}
 			$value_converted = Multicurrency::getAmountConversionFromInvoiceRate($key, $value, $way);
 			if (empty($currencyofpayment)) {
 				$currencyofpayment = isset($this->multicurrency_code[$key]) ? $this->multicurrency_code[$key] : "";
