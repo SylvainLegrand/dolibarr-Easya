@@ -177,6 +177,9 @@ class PaiementFourn extends Paiement
 		$currencyofpayment = '';
 		$currencytxofpayment = '';
 		foreach ($amounts as $key => $value) {
+			if (empty($value)) {
+				continue;
+			}
 			$value_converted = Multicurrency::getAmountConversionFromInvoiceRate($key, $value ? $value : 0, $way, 'facture_fourn');
 			if (empty($currencyofpayment)) {
 				$currencyofpayment = $this->multicurrency_code[$key];
