@@ -33,6 +33,7 @@
 require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.class.php';
 require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
+require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture-rec.class.php';
 require_once DOL_DOCUMENT_ROOT.'/supplier_proposal/class/supplier_proposal.class.php';
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
@@ -43,8 +44,9 @@ if (isModEnabled('adherent')) {
 if (isModEnabled('categorie')) {
 	require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 }
-if (!empty($conf->accounting->enabled)) {
-	require_once DOL_DOCUMENT_ROOT . '/core/lib/accounting.lib.php';
+if (isModEnabled('accounting')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/accounting.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountingaccount.class.php';
 }
 
 // Load translation files required by page
@@ -100,8 +102,17 @@ if (empty($reshook)) {
 	if ($cancel) {
 		$action = "";
 	}
-
-	// Set supplier accounting account
+	// set general supplier accounting account
+	if ($action == 'setsupplieraccountancycodegeneral' && $user->hasRight('societe', 'creer')) {
+		$result = $object->fetch($id);
+		$object->accountancy_code_supplier_general = GETPOST("supplieraccountancycodegeneral");
+		$result = $object->update($object->id, $user, 1, 0, 1);
+		if ($result < 0) {
+			setEventMessages($object->error, $object->errors, 'errors');
+			$_GET['action'] = 'editsupplieraccountancycode';
+		}
+	}
+	// Set auxiliary supplier accounting account
 	if ($action == 'setsupplieraccountancycode' && $user->hasRight('societe', 'creer')) {
 		$result = $object->fetch($id);
 		$object->code_compta_fournisseur = GETPOST("supplieraccountancycode");
@@ -242,7 +253,26 @@ if ($object->id > 0) {
 		}
 		print '</td>';
 		print '</tr>';
+		if (isModEnabled('accounting')) {
+			$formaccounting = new FormAccounting($db);
 
+			print '<tr>';
+			print '<td>';
+			print $form->editfieldkey("SupplierAccountancyCodeGeneral", 'supplieraccountancycodegeneral', length_accountg($object->accountancy_code_supplier_general), $object, $user->hasRight('societe', 'creer'));
+			print '</td><td>';
+			if ($action == 'editsupplieraccountancycodegeneral' && $user->hasRight('societe', 'creer')) {
+				print $formaccounting->formAccountingAccount($_SERVER['PHP_SELF'].'?id='.$object->id, $object->accountancy_code_supplier_general, 'supplieraccountancycodegeneral', 0, 1, '', 1);
+			} else {
+				$accountingaccount = new AccountingAccount($db);
+				$accountingaccount->fetch(0, $object->accountancy_code_supplier_general, 1);
+
+				print $accountingaccount->getNomUrl(0, 1, 1, '', 1);
+			}
+			$accountingAccountByDefault = " (" . $langs->trans("AccountingAccountByDefaultShort") . ": " . length_accountg(getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER')) . ")";
+			print (getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER') ? $accountingAccountByDefault : '');
+			print '</td>';
+			print '</tr>';
+		}
 		$langs->load('compta');
 		print '<tr>';
 		print '<td>';
@@ -275,14 +305,15 @@ if ($object->id > 0) {
 	}
 
 	// VAT reverse-charge by default on supplier invoice or not
-	print '<tr>';
-	print '<td class="titlefield">';
-	print $form->textwithpicto($langs->trans('VATReverseChargeByDefault'), $langs->trans('VATReverseChargeByDefaultDesc'));
-	print '</td><td>';
-	print '<input type="checkbox" name="vat_reverse_charge" '.($object->vat_reverse_charge == '1' ? ' checked' : '').' disabled>';
-	print '</td>';
-	print '</tr>';
-
+	if (getDolGlobalString('ACCOUNTING_FORCE_ENABLE_VAT_REVERSE_CHARGE')) {
+		print '<tr>';
+		print '<td class="titlefield">';
+		print $form->textwithpicto($langs->trans('VATReverseChargeByDefault'), $langs->trans('VATReverseChargeByDefaultDesc'));
+		print '</td><td>';
+		print '<input type="checkbox" name="vat_reverse_charge" ' . ($object->vat_reverse_charge == '1' ? ' checked' : '') . ' disabled>';
+		print '</td>';
+		print '</tr>';
+	}
 	// TVA Intra
 	print '<tr><td class="nowrap">';
 	//print $langs->trans('VATIntra').'</td><td>';
