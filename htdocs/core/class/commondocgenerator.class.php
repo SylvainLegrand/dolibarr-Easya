@@ -826,24 +826,28 @@ abstract class CommonDocGenerator
 			$object->volume_units = $object->size_units * 3;
 		}
 
-		if (!empty($totalWeight)) {
-			$array_shipment[$array_key.'_total_weight'] = (empty($totalWeight)) ? '' : showDimensionInBestUnit($totalWeight, 0, "weight", $outputlangs, -1, 'no', 1);
-		}
-		if (!empty($totalVolume)) {
-			$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' : showDimensionInBestUnit($totalVolume, 0, "volume", $outputlangs, -1, 'no', 1);
-		}
+		$array_shipment[$array_key.'_total_ordered'] = (string) $totalOrdered;
+		$array_shipment[$array_key.'_total_toship'] = (string) $totalToShip;
+
 		if ($object->trueWeight) {
 			$array_shipment[$array_key.'_total_weight'] = (empty($totalWeight)) ? '' : showDimensionInBestUnit($object->trueWeight, $object->weight_units, "weight", $outputlangs);
+		} elseif (!empty($totalWeight)) {
+			$array_shipment[$array_key.'_total_weight'] = (empty($totalWeight)) ? '' : showDimensionInBestUnit($totalWeight, 0, "weight", $outputlangs, -1, 'no', 1);
+		} else {
+			$array_shipment[$array_key.'_total_weight'] = "";
 		}
+
 		if (!empty($object->trueVolume)) {
 			if ($object->volume_units < 50) {
 				$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' : showDimensionInBestUnit($object->trueVolume, $object->volume_units, "volume", $outputlangs);
 			} else {
 				$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' :  price($object->trueVolume, 0, $outputlangs, 0, 0).' '.measuringUnitString(0, "volume", $object->volume_units);
 			}
+		} elseif (!empty($totalVolume)) {
+			$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' : showDimensionInBestUnit($totalVolume, 0, "volume", $outputlangs, -1, 'no', 1);
+		} else {
+			$array_shipment[$array_key.'_total_volume'] = "";
 		}
-		$array_shipment[$array_key.'_total_ordered'] = $totalOrdered;
-		$array_shipment[$array_key.'_total_toship'] = $totalToShip;
 
 		// Add vat by rates
 		foreach ($object->lines as $line) {
