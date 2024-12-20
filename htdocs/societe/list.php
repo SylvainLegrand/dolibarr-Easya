@@ -43,10 +43,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/client.class.php';
-if (isModEnabled('accounting')) {
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/accounting.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountingaccount.class.php';
-}
+
 
 // Load translation files required by the page
 $langs->loadLangs(array("companies", "commercial", "customers", "suppliers", "bills", "compta", "categories", "cashdesk"));
@@ -78,8 +75,6 @@ $search_customer_code = trim(GETPOST('search_customer_code', 'alpha'));
 $search_supplier_code = trim(GETPOST('search_supplier_code', 'alpha'));
 $search_account_customer_code = trim(GETPOST('search_account_customer_code', 'alpha'));
 $search_account_supplier_code = trim(GETPOST('search_account_supplier_code', 'alpha'));
-$search_accountancy_code_customer_general = trim(GETPOST('search_accountancy_code_customer_general', 'alpha'));
-$search_accountancy_code_supplier_general = trim(GETPOST('search_accountancy_code_supplier_general', 'alpha'));
 $search_address = trim(GETPOST('search_address', 'alpha'));
 $search_zip = trim(GETPOST("search_zip", 'alpha'));
 $search_town = trim(GETPOST("search_town", 'alpha'));
@@ -182,8 +177,6 @@ $fieldstosearchall = array(
 	's.code_fournisseur'=>"SupplierCode",
 	's.code_compta'=>"CustomerAccountancyCodeShort",
 	's.code_compta_fournisseur'=>"SupplierAccountancyCodeShort",
-	's.accountancy_code_customer_general'=>"CustomerGeneralAccountancyCodeShort",
-	's.accountancy_code_supplier_general'=>"SupplierGeneralAccountancyCodeShort",
 	's.zip'=>"Zip",
 	's.town'=>"Town",
 	's.email'=>"EMail",
@@ -218,8 +211,6 @@ $checkedcustomercode = (in_array($contextpage, array('thirdpartylist', 'customer
 $checkedsuppliercode = (in_array($contextpage, array('supplierlist')) ? 1 : 0);
 $checkedcustomeraccountcode = (in_array($contextpage, array('customerlist')) ? 1 : 0);
 $checkedsupplieraccountcode = (in_array($contextpage, array('supplierlist')) ? 1 : 0);
-$checkedgeneralcustomeraccountcode = (in_array($contextpage, array('accountancycustomerlist')) ? 1 : 0);
-$checkedgeneralsupplieraccountcode = (in_array($contextpage, array('accountancysupplierlist')) ? 1 : 0);
 $checkedtypetiers = 1;
 $checkedprofid1 = 0;
 $checkedprofid2 = 0;
@@ -241,8 +232,6 @@ $arrayfields = array(
 	's.code_fournisseur'=>array('label'=>"SupplierCodeShort", 'position'=>11, 'checked'=>$checkedsuppliercode, 'enabled'=>(isModEnabled("supplier_order") || isModEnabled("supplier_invoice"))),
 	's.code_compta'=>array('label'=>"CustomerAccountancyCodeShort", 'position'=>13, 'checked'=>$checkedcustomeraccountcode),
 	's.code_compta_fournisseur'=>array('label'=>"SupplierAccountancyCodeShort", 'position'=>14, 'checked'=>$checkedsupplieraccountcode, 'enabled'=>(isModEnabled("supplier_order") || isModEnabled("supplier_invoice"))),
-	's.accountancy_code_customer_general'=>array('label'=>"CustomerGeneralAccountancyCodeShort", 'position'=>17, 'checked'=>$checkedgeneralcustomeraccountcode, 'enabled'=>(isModEnabled('accounting'))),
-	's.accountancy_code_supplier_general'=>array('label'=>"SupplierGeneralAccountancyCodeShort", 'position'=>18, 'checked'=>$checkedgeneralsupplieraccountcode, 'enabled'=>(isModEnabled('accounting') && (isModEnabled("supplier_order") || isModEnabled("supplier_invoice")))),
 	's.address'=>array('label'=>"Address", 'position'=>19, 'checked'=>0),
 	's.zip'=>array('label'=>"Zip", 'position'=>20, 'checked'=>1),
 	's.town'=>array('label'=>"Town", 'position'=>21, 'checked'=>0),
@@ -362,8 +351,6 @@ if (empty($reshook)) {
 		$search_supplier_code = '';
 		$search_account_customer_code = '';
 		$search_account_supplier_code = '';
-		$search_accountancy_code_customer_general = '';
-		$search_accountancy_code_supplier_general = '';
 		$search_address = '';
 		$search_zip = "";
 		$search_town = "";
@@ -486,7 +473,7 @@ $sql .= " s.entity,";
 $sql .= " st.libelle as stcomm, st.picto as stcomm_picto, s.fk_stcomm as stcomm_id, s.fk_prospectlevel, s.prefix_comm, s.client, s.fournisseur, s.canvas, s.status as status,";
 $sql .= " s.email, s.phone, s.fax, s.url, s.siren as idprof1, s.siret as idprof2, s.ape as idprof3, s.idprof4 as idprof4, s.idprof5 as idprof5, s.idprof6 as idprof6, s.tva_intra, s.fk_pays,";
 $sql .= " s.tms as date_update, s.datec as date_creation, s.import_key,";
-$sql .= " s.code_compta, s.code_compta_fournisseur, s.accountancy_code_customer_general, s.accountancy_code_supplier_general, s.parent as fk_parent,s.price_level,";
+$sql .= " s.code_compta, s.code_compta_fournisseur, s.parent as fk_parent,s.price_level,";
 $sql .= " s2.nom as name2,";
 $sql .= " typent.code as typent_code,";
 $sql .= " staff.code as staff_code,";
@@ -645,12 +632,6 @@ if ($search_account_customer_code) {
 }
 if ($search_account_supplier_code) {
 	$sql .= natural_search("s.code_compta_fournisseur", $search_account_supplier_code);
-}
-if ($search_accountancy_code_customer_general) {
-	$sql .= natural_search("s.accountancy_code_customer_general", $search_accountancy_code_customer_general);
-}
-if ($search_accountancy_code_supplier_general) {
-	$sql .= natural_search("s.accountancy_code_supplier_general", $search_accountancy_code_supplier_general);
 }
 if ($search_address) {
 	$sql .= natural_search('s.address', $search_address);
@@ -896,12 +877,6 @@ if ($search_account_customer_code != '') {
 if ($search_account_supplier_code != '') {
 	$param .= "&search_account_supplier_code=".urlencode($search_account_supplier_code);
 }
-if ($search_accountancy_code_customer_general != '') {
-	$param .= "&search_accountancy_code_customer_general=".urlencode($search_accountancy_code_customer_general);
-}
-if ($search_accountancy_code_supplier_general != '') {
-	$param .= "&search_accountancy_code_supplier_general=".urlencode($search_accountancy_code_supplier_general);
-}
 if ($search_barcode != '') {
 	$param .= "&search_barcode=".urlencode($search_barcode);
 }
@@ -980,9 +955,6 @@ if (isModEnabled('category') && $user->hasRight("societe", "creer")) {
 }
 if ($user->hasRight("societe", "creer")) {
 	$arrayofmassactions['preenable'] = img_picto('', 'stop-circle', 'class="pictofixedwidth"').$langs->trans("SetToStatus", $object->LibStatut($object::STATUS_INACTIVITY));
-}
-if ($user->hasRight("societe", "creer")) {
-	$arrayofmassactions['preaffectgeneralaccount'] = img_picto('', 'bill', 'class="pictofixedwidth"').$langs->trans("SetToGeneralAccount", $object->LibStatut($object::STATUS_INACTIVITY));
 }
 if ($user->hasRight("societe", "creer")) {
 	$arrayofmassactions['predisable'] = img_picto('', 'stop-circle', 'class="pictofixedwidth"').$langs->trans("SetToStatus", $object->LibStatut($object::STATUS_CEASED));
@@ -1191,18 +1163,6 @@ if (!empty($arrayfields['s.code_compta']['checked'])) {
 if (!empty($arrayfields['s.code_compta_fournisseur']['checked'])) {
 	print '<td class="liste_titre">';
 	print '<input class="flat maxwidth75imp" type="text" name="search_account_supplier_code" value="'.dol_escape_htmltag($search_account_supplier_code).'">';
-	print '</td>';
-}
-// General Account Customer code
-if (!empty($arrayfields['s.accountancy_code_customer_general']['checked'])) {
-	print '<td class="liste_titre">';
-	print '<input class="flat searchstring maxwidth75imp" type="text" name="search_accountancy_code_customer_general" value="'.dol_escape_htmltag($search_accountancy_code_customer_general).'">';
-	print '</td>';
-}
-// General Account Supplier code
-if (!empty($arrayfields['s.accountancy_code_supplier_general']['checked'])) {
-	print '<td class="liste_titre">';
-	print '<input class="flat maxwidth75imp" type="text" name="search_accountancy_code_supplier_general" value="'.dol_escape_htmltag($search_accountancy_code_supplier_general).'">';
 	print '</td>';
 }
 // Address
@@ -1439,14 +1399,6 @@ if (!empty($arrayfields['s.code_compta_fournisseur']['checked'])) {
 	print_liste_field_titre($arrayfields['s.code_compta_fournisseur']['label'], $_SERVER["PHP_SELF"], "s.code_compta_fournisseur", "", $param, '', $sortfield, $sortorder);
 	$totalarray['nbfield']++;
 }
-if (!empty($arrayfields['s.accountancy_code_customer_general']['checked'])) {
-	print_liste_field_titre($arrayfields['s.accountancy_code_customer_general']['label'], $_SERVER["PHP_SELF"], "s.accountancy_code_customer_general", "", $param, '', $sortfield, $sortorder);
-	$totalarray['nbfield']++;
-}
-if (!empty($arrayfields['s.accountancy_code_supplier_general']['checked'])) {
-	print_liste_field_titre($arrayfields['s.accountancy_code_supplier_general']['label'], $_SERVER["PHP_SELF"], "s.accountancy_code_supplier_general", "", $param, '', $sortfield, $sortorder);
-	$totalarray['nbfield']++;
-}
 if (!empty($arrayfields['s.address']['checked'])) {
 	print_liste_field_titre($arrayfields['s.address']['label'], $_SERVER['PHP_SELF'], 's.address', '', $param, '', $sortfield, $sortorder);
 	$totalarray['nbfield']++;
@@ -1612,9 +1564,6 @@ while ($i < $imaxinloop) {
 		$companystatic->code_compta_client = $obj->code_compta;
 		$companystatic->code_compta_fournisseur = $obj->code_compta_fournisseur;
 
-		$companystatic->accountancy_code_customer_general = $obj->accountancy_code_customer_general;
-		$companystatic->accountancy_code_supplier_general = $obj->accountancy_code_supplier_general;
-
 		$companystatic->fk_prospectlevel = $obj->fk_prospectlevel;
 		$companystatic->parent = $obj->fk_parent;
 		$companystatic->entity = $obj->entity;
@@ -1714,24 +1663,6 @@ while ($i < $imaxinloop) {
 		// Account supplier code
 		if (!empty($arrayfields['s.code_compta_fournisseur']['checked'])) {
 			print '<td>'.dol_escape_htmltag($companystatic->code_compta_fournisseur).'</td>';
-			if (!$i) {
-				$totalarray['nbfield']++;
-			}
-		}
-		// General Account customer code
-		if (!empty($arrayfields['s.accountancy_code_customer_general']['checked'])) {
-			$accountingaccount = new AccountingAccount($db);
-			$accountingaccount->fetch(0, $companystatic->accountancy_code_customer_general, 1);
-			print '<td>'.$accountingaccount->getNomUrl(0, 1, 1, '', 1).'</td>';
-			if (!$i) {
-				$totalarray['nbfield']++;
-			}
-		}
-		// General Account supplier code
-		if (!empty($arrayfields['s.accountancy_code_supplier_general']['checked'])) {
-			$accountingaccount = new AccountingAccount($db);
-			$accountingaccount->fetch(0, $companystatic->accountancy_code_supplier_general, 1);
-			print '<td>'.$accountingaccount->getNomUrl(0, 1, 1, '', 1).'</td>';
 			if (!$i) {
 				$totalarray['nbfield']++;
 			}
