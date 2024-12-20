@@ -646,16 +646,3 @@ ALTER TABLE llx_societe_account MODIFY COLUMN site varchar(128) NOT NULL;
 ALTER TABLE llx_c_tva ADD COLUMN fk_department_buyer integer DEFAULT NULL AFTER fk_pays;
 ALTER TABLE llx_c_tva ADD INDEX idx_tva_fk_department_buyer (fk_department_buyer);
 ALTER TABLE llx_c_tva ADD CONSTRAINT fk_tva_fk_department_buyer FOREIGN KEY (fk_department_buyer) REFERENCES llx_c_departements (rowid);
--- backport from develop (v21) -- Add capacity to define general account + auxiliary account on thirdparty & user
--- Add accountancy code general on user / customer / supplier subledger
-ALTER TABLE llx_user ADD COLUMN accountancy_code_user_general varchar(32) DEFAULT NULL AFTER fk_barcode_type;
-ALTER TABLE llx_societe ADD COLUMN accountancy_code_customer_general varchar(32) DEFAULT NULL AFTER code_fournisseur;
-ALTER TABLE llx_societe ADD COLUMN accountancy_code_supplier_general varchar(32) DEFAULT NULL AFTER code_compta;
-ALTER TABLE llx_societe_perentity ADD COLUMN accountancy_code_customer_general varchar(32) DEFAULT NULL AFTER entity;
-ALTER TABLE llx_societe_perentity ADD COLUMN accountancy_code_supplier_general varchar(32) DEFAULT NULL AFTER accountancy_code_customer;
-
--- Uniformize length of accountancy account
-ALTER TABLE llx_societe MODIFY COLUMN code_compta varchar(32);
-ALTER TABLE llx_societe MODIFY COLUMN code_compta_fournisseur varchar(32);
-ALTER TABLE llx_societe_perentity MODIFY COLUMN accountancy_code_customer varchar(32);
-ALTER TABLE llx_societe_perentity MODIFY COLUMN accountancy_code_supplier varchar(32);
