@@ -4029,7 +4029,7 @@ abstract class CommonObject
 			$num = $this->db->num_rows($resql);
 			$i = 0;
 			while ($i < $num) {
-				$obj = $this->db->fetch_object($resql);
+                $obj = $this->db->fetch_object($resql);
 				if ($justsource || $justtarget) {
 					if ($justsource) {
 						$this->linkedObjectsIds[$obj->targettype][$obj->rowid] = $obj->fk_target;
@@ -4089,8 +4089,12 @@ abstract class CommonObject
 						$classpath = 'adherents/class';
 						$module = 'adherent';
 					} elseif ($objecttype == 'contact') {
-						 $module = 'societe';
-					}
+                        $module = 'societe';
+                    } elseif ($objecttype == 'action') {
+                        $module = 'agenda';
+                        $subelement = 'actionComm';
+                    }
+
 					// Set classfile
 					$classfile = strtolower($subelement);
 					$classname = ucfirst($subelement);
