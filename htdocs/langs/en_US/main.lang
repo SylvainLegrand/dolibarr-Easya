@@ -1185,6 +1185,7 @@ ConfirmCancel=Are you sure you want to cancel
 EmailMsgID=Email MsgID
 EmailDate=Email date
 SetToStatus=Set to status %s
+SetToGeneralAccount= Assign general accountancy code
 SetToEnabled=Set to enabled
 SetToDisabled=Set to disabled
 ConfirmMassEnabling=mass enabling confirmation

@@ -74,7 +74,19 @@ if (!$user->hasRight('accounting', 'bind', 'write')) {
 
 $error = 0;
 
+$tabfac = array();
+$tabht = array();
+$tabtva = array();
+$tabttc = array();
+$tablocaltax1 = array();
+$tablocaltax2 = array();
+$tabrctva = array();
+$tabrclocaltax1 = array();
+$tabrclocaltax2 = array();
+$tabpay = array();
 
+$cptcli = 'NotDefined';
+$cptfour = 'NotDefined';
 /*
  * Actions
  */
@@ -112,10 +124,14 @@ $sql .= " p.default_vat_code AS product_buy_default_vat_code, p.tva_tx as produc
 $sql .= " co.code as country_code, co.label as country_label,";
 $sql .= " s.rowid as socid, s.nom as name, s.fournisseur, s.code_client, s.code_fournisseur, s.fk_pays,";
 if (getDolGlobalString('MAIN_COMPANY_PERENTITY_SHARED')) {
+	$sql .= " spe.accountancy_code_customer_general,";
 	$sql .= " spe.accountancy_code_customer as code_compta,";
+	$sql .= " spe.accountancy_code_supplier_general,";
 	$sql .= " spe.accountancy_code_supplier as code_compta_fournisseur,";
 } else {
+	$sql .= " s.accountancy_code_customer_general,";
 	$sql .= " s.code_compta as code_compta,";
+	$sql .= " s.accountancy_code_supplier_general,";
 	$sql .= " s.code_compta_fournisseur,";
 }
 if (getDolGlobalString('MAIN_PRODUCT_PERENTITY_SHARED')) {
@@ -200,6 +216,7 @@ if ($result) {
 		$obj = $db->fetch_object($result);
 
 		// Controls
+		$accountancy_code_supplier_general = (!empty($obj->accountancy_code_supplier_general)) ? $obj->accountancy_code_supplier_general : $cptfour;
 		$compta_soc = ($obj->code_compta_fournisseur != "") ? $obj->code_compta_fournisseur : $cptfour;
 
 		$compta_prod = $obj->compte;
@@ -228,8 +245,8 @@ if ($result) {
 			$def_tva[$obj->rowid][$compta_tva][vatrate($obj->tva_tx).($obj->vat_src_code ? ' ('.$obj->vat_src_code.')' : '')] = (vatrate($obj->tva_tx).($obj->vat_src_code ? ' ('.$obj->vat_src_code.')' : ''));
 		}
 
-		$line = new SupplierInvoiceLine($db);
-		$line->fetch($obj->fdid);
+		//$line = new SupplierInvoiceLine($db);
+		//$line->fetch($obj->fdid);
 
 		$tabfac[$obj->rowid]["date"] = $db->jdate($obj->df);
 		$tabfac[$obj->rowid]["datereg"] = $db->jdate($obj->dlr);
@@ -293,9 +310,9 @@ if ($result) {
 				$tabrclocaltax2[$obj->rowid][$rcd_compta_localtax2] = 0;
 			}
 
-			$rcvat = (double) price2num($obj->total_ttc * $obj->product_buy_vat / 100, 'MT');
-			$rclocalvat1 = (double) price2num($obj->total_ttc * $obj->product_buy_localvat1 / 100, 'MT');
-			$rclocalvat2 = (double) price2num($obj->total_ttc * $obj->product_buy_localvat2 / 100, 'MT');
+			$rcvat = (float) price2num($obj->total_ttc * $obj->product_buy_vat / 100, 'MT');
+			$rclocalvat1 = (float) price2num($obj->total_ttc * $obj->product_buy_localvat1 / 100, 'MT');
+			$rclocalvat2 = (float) price2num($obj->total_ttc * $obj->product_buy_localvat2 / 100, 'MT');
 
 			$tabrctva[$obj->rowid][$rcd_compta_tva] += $rcvat;
 			$tabrctva[$obj->rowid][$rcc_compta_tva] -= $rcvat;
@@ -308,7 +325,7 @@ if ($result) {
 		$tabttc[$obj->rowid][$compta_soc] += $obj->total_ttc;
 		$tabht[$obj->rowid][$compta_prod] += $obj->total_ht;
 		$tabtva[$obj->rowid][$compta_tva] += $obj->total_tva;
-		$tva_npr = (($obj->info_bits & 1 == 1) ? 1 : 0);
+		$tva_npr = ((($obj->info_bits & 1) == 1) ? 1 : 0);
 		if ($tva_npr) { // If NPR, we add an entry for counterpartWe into tabother
 			$tabother[$obj->rowid][$compta_counterpart_tva_npr] += $obj->total_tva;
 		}
@@ -318,6 +335,7 @@ if ($result) {
 				'id' => $obj->socid,
 				'name' => $obj->name,
 				'code_fournisseur' => $obj->code_fournisseur,
+				'accountancy_code_supplier_general' => $accountancy_code_supplier_general,
 				'code_compta_fournisseur' => $compta_soc
 			);
 
@@ -360,12 +378,12 @@ SELECT
     fk_facture_fourn,
     COUNT(fd.rowid) as nb
 FROM
-    llx_facture_fourn_det as fd
+    " . MAIN_DB_PREFIX . "facture_fourn_det as fd
 WHERE
     fd.product_type <= 2
     AND fd.fk_code_ventilation <= 0
     AND fd.total_ttc <> 0
-	AND fk_facture_fourn IN (".$db->sanitize(join(",", array_keys($tabfac))).")
+	AND fk_facture_fourn IN (".$db->sanitize(implode(",", array_keys($tabfac))).")
 GROUP BY fk_facture_fourn
 ";
 $resql = $db->query($sql);
@@ -404,6 +422,7 @@ if ($action == 'writebookkeeping' && !$error) {
 
 		$companystatic->id = $tabcompany[$key]['id'];
 		$companystatic->name = $tabcompany[$key]['name'];
+		$companystatic->accountancy_code_supplier_general = $tabcompany[$key]['accountancy_code_supplier_general'];
 		$companystatic->code_compta_fournisseur = $tabcompany[$key]['code_compta_fournisseur'];
 		$companystatic->code_fournisseur = $tabcompany[$key]['code_fournisseur'];
 		$companystatic->fournisseur = 1;
@@ -456,7 +475,7 @@ if ($action == 'writebookkeeping' && !$error) {
 				$bookkeeping->subledger_account = $tabcompany[$key]['code_compta_fournisseur'];
 				$bookkeeping->subledger_label = $tabcompany[$key]['name'];
 
-				$bookkeeping->numero_compte = getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER');
+				$bookkeeping->numero_compte = $tabcompany[$key]['accountancy_code_supplier_general'];
 				$bookkeeping->label_compte = $accountingaccountsupplier->label;
 
 				$bookkeeping->label_operation = dol_trunc($companystatic->name, 16).' - '.$invoicestatic->ref_supplier.' - '.$langs->trans("SubledgerAccount");
@@ -768,6 +787,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 	foreach ($tabfac as $key => $val) {
 		$companystatic->id = $tabcompany[$key]['id'];
 		$companystatic->name = $tabcompany[$key]['name'];
+		$companystatic->accountancy_code_supplier_general = !empty($tabcompany[$key]['accountancy_code_supplier_general']) ? $tabcompany[$key]['accountancy_code_supplier_general'] : $cptfour;
 		$companystatic->code_compta_fournisseur = $tabcompany[$key]['code_compta_fournisseur'];
 		$companystatic->code_fournisseur = $tabcompany[$key]['code_fournisseur'];
 		$companystatic->fournisseur = 1;
@@ -804,7 +824,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 				print '"'.$val["refsologest"].'"'.$sep;
 				print '"'.utf8_decode(dol_trunc($companystatic->name, 32)).'"'.$sep;
 				print '"'.length_accounta(html_entity_decode($k)).'"'.$sep;
-				print '"'.length_accountg(getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER')).'"'.$sep;
+				print '"'.length_accountg($companystatic->accountancy_code_supplier_general).'"'.$sep;
 				print '"'.length_accounta(html_entity_decode($k)).'"'.$sep;
 				print '"'.$langs->trans("Thirdparty").'"'.$sep;
 				print '"'.utf8_decode(dol_trunc($companystatic->name, 16)).' - '.$val["refsuppliersologest"].' - '.$langs->trans("Thirdparty").'"'.$sep;
@@ -864,7 +884,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 					if ($numtax == 2) {
 						$arrayofvat = $tabrclocaltax2;
 					}
-					if (!is_array($arrayofvat[$key])) {
+					if (!isset($arrayofvat[$key]) || !is_array($arrayofvat[$key])) {
 						$arrayofvat[$key] = array();
 					}
 				}
@@ -879,7 +899,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 					print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 					print '"'.length_accountg(html_entity_decode($k)).'"'.$sep;
 					print '""'.$sep;
-					print '"'.$langs->trans("VAT").' - '.join(', ', $def_tva[$key][$k]).' %"'.$sep;
+					print '"'.$langs->trans("VAT").' - '.implode(', ', $def_tva[$key][$k]).' %"'.$sep;
 					print '"'.utf8_decode(dol_trunc($companystatic->name, 16)).' - '.$val["refsuppliersologest"].' - '.$langs->trans("VAT").join(', ', $def_tva[$key][$k]).' %'.($numtax ? ' - Localtax '.$numtax : '').'"'.$sep;
 					print '"'.($mt >= 0 ? price($mt) : '').'"'.$sep;
 					print '"'.($mt < 0 ? price(-$mt) : '').'"'.$sep;
@@ -889,7 +909,7 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 			}
 
 			// VAT counterpart for NPR
-			if (is_array($tabother[$key])) {
+			if (isset($tabother[$key]) && is_array($tabother[$key])) {
 				foreach ($tabother[$key] as $k => $mt) {
 					if ($mt) {
 						print '"'.$key.'"'.$sep;
@@ -914,8 +934,8 @@ if ($action == 'exportcsv' && !$error) {		// ISO and not UTF8 !
 
 if (empty($action) || $action == 'view') {
 	$title = $langs->trans("GenerationOfAccountingEntries").' - '.$accountingjournalstatic->getNomUrl(0, 2, 1, '', 1);
-
-	llxHeader('', dol_string_nohtmltag($title));
+	$help_url = 'EN:Module_Double_Entry_Accounting|FR:Module_Comptabilit&eacute;_en_Partie_Double#G&eacute;n&eacute;ration_des_&eacute;critures_en_comptabilit&eacute;';
+	llxHeader('', dol_string_nohtmltag($title), $help_url, '', 0, 0, '', '', '', 'mod-accountancy accountancy-generation page-purchasesjournal');
 
 	$nom = $title;
 	$nomlink = '';
@@ -1021,6 +1041,7 @@ if (empty($action) || $action == 'view') {
 	foreach ($tabfac as $key => $val) {
 		$companystatic->id = $tabcompany[$key]['id'];
 		$companystatic->name = $tabcompany[$key]['name'];
+		$companystatic->accountancy_code_supplier_general = !empty($tabcompany[$key]['accountancy_code_supplier_general']) ? $tabcompany[$key]['accountancy_code_supplier_general'] : $cptfour;
 		$companystatic->code_compta_fournisseur = $tabcompany[$key]['code_compta_fournisseur'];
 		$companystatic->code_fournisseur = $tabcompany[$key]['code_fournisseur'];
 		$companystatic->fournisseur = 1;
@@ -1066,7 +1087,7 @@ if (empty($action) || $action == 'view') {
 			$i++;
 			continue;
 		}
-		if ($errorforinvoice[$key] == 'somelinesarenotbound') {
+		if (isset($errorforinvoice[$key]) && $errorforinvoice[$key] == 'somelinesarenotbound') {
 			print '<tr class="oddeven">';
 			print "<!-- Some lines are not bound -->";
 			print "<td>".$date."</td>";
@@ -1095,7 +1116,7 @@ if (empty($action) || $action == 'view') {
 			print "<td>".$invoicestatic->getNomUrl(1)."</td>";
 			// Account
 			print "<td>";
-			$accountoshow = length_accountg(getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER'));
+			$accountoshow = length_accountg(!empty($tabcompany[$key]['accountancy_code_supplier_general']) ? $tabcompany[$key]['accountancy_code_supplier_general'] : $cptfour);
 			if (($accountoshow == "") || $accountoshow == 'NotDefined') {
 				print '<span class="error">'.$langs->trans("MainAccountForSuppliersNotDefined").'</span>';
 			} else {
@@ -1141,7 +1162,7 @@ if (empty($action) || $action == 'view') {
 			print "<td>";
 			if (getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER_USE_AUXILIARY_ON_DEPOSIT')) {
 				if ($k == getDolGlobalString('ACCOUNTING_ACCOUNT_SUPPLIER_DEPOSIT')) {
-					print length_accounta($tabcompany[$key]['code_compta']);
+					print length_accounta($tabcompany[$key]['code_compta_fournisseur']);
 				}
 			} elseif (($accountoshow == "") || $accountoshow == 'NotDefined') {
 				print '<span class="error">' . $langs->trans("ThirdpartyAccountNotDefined") . '</span>';
@@ -1185,7 +1206,7 @@ if (empty($action) || $action == 'view') {
 					if ($numtax == 2) {
 						$arrayofvat = $tabrclocaltax2;
 					}
-					if (!is_array($arrayofvat[$key])) {
+					if (!isset($arrayofvat[$key]) || !is_array($arrayofvat[$key])) {
 						$arrayofvat[$key] = array();
 					}
 				}
@@ -1222,7 +1243,7 @@ if (empty($action) || $action == 'view') {
 		}
 
 		// VAT counterpart for NPR
-		if (is_array($tabother[$key])) {
+		if (isset($tabother[$key]) && is_array($tabother[$key])) {
 			foreach ($tabother[$key] as $k => $mt) {
 				if ($mt) {
 					print '<tr class="oddeven">';

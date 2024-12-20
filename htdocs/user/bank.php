@@ -46,9 +46,16 @@ if (isModEnabled('salaries')) {
 	require_once DOL_DOCUMENT_ROOT.'/salaries/class/salary.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/salaries/class/paymentsalary.class.php';
 }
-
+if (isModEnabled('accounting')) {
+	require_once DOL_DOCUMENT_ROOT.'/core/lib/accounting.lib.php';
+	require_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountingaccount.class.php';
+}
 // Load translation files required by page
 $langs->loadLangs(array('companies', 'commercial', 'banks', 'bills', 'trips', 'holiday', 'salaries'));
+
+if (isModEnabled('accounting')) {
+	$langs->load('compta');
+}
 
 $id = GETPOST('id', 'int');
 $ref = GETPOST('ref', 'alphanohtml');
@@ -213,7 +220,17 @@ if ($action == 'setpersonal_mobile' && $canadduser && !$cancel) {
 	}
 }
 
-// update accountancy_code
+// update accountancy_code_user_general
+if ($action == 'setaccountancycodeusergeneral' && $usercanadd) {
+	$result = $object->fetch($id);
+	$object->accountancy_code_user_general = GETPOST("accountancycodeusergeneral");
+	$result = $object->update($user);
+	if ($result < 0) {
+		setEventMessages($object->error, $object->errors, 'errors');
+		$action = 'editaccountancycodeusergeneral';
+	}
+}
+
 if ($action == 'setaccountancy_code' && $canadduser && !$cancel) {
 	$object->accountancy_code = (string) GETPOST('accountancy_code', 'alphanohtml');
 	$result = $object->update($user);
@@ -556,7 +573,7 @@ if ($action != 'edit' && $action != 'create') {		// If not bank account yet, $ac
 		print '</td>';
 		print '</tr>';
 	}
-
+/*
 	// Accountancy code
 	if (isModEnabled('accounting')) {
 		print '<tr class="nowrap">';
@@ -567,6 +584,7 @@ if ($action != 'edit' && $action != 'create') {		// If not bank account yet, $ac
 		print '</td>';
 		print '</tr>';
 	}
+*/
 
 	// Employee Number
 	if ($permissiontoreadhr) {
@@ -586,6 +604,34 @@ if ($action != 'edit' && $action != 'create') {		// If not bank account yet, $ac
 		print $form->editfieldkey("NationalRegistrationNumber", 'national_registration_number', $object->national_registration_number, $object, $permissiontowritehr);
 		print '</td><td>';
 		print $form->editfieldval("NationalRegistrationNumber", 'national_registration_number', $object->national_registration_number, $object, $permissiontowritehr, 'string', $object->national_registration_number);
+		print '</td>';
+		print '</tr>';
+	}
+	if (isModEnabled('accounting')) {
+		// Accountancy code user general
+		$formaccounting = new FormAccounting($db);
+
+		print '<tr>';
+		print '<td>';
+		print $form->editfieldkey("UserAccountancyCodeGeneral", 'accountancycodeusergeneral', length_accountg($object->accountancy_code_user_general), $object, $user->hasRight('user', 'user', 'creer'));
+		print '</td><td>';
+		if ($action == 'editaccountancycodeusergeneral' && $user->hasRight('user', 'user', 'creer')) {
+			print $formaccounting->formAccountingAccount($_SERVER['PHP_SELF'].'?id='.$object->id, $object->accountancy_code_user_general, 'accountancycodeusergeneral', 0, 1, '', 1);
+		} else {
+			$accountingaccount = new AccountingAccount($db);
+			$accountingaccount->fetch(0, $object->accountancy_code_user_general, 1);
+			print $accountingaccount->getNomUrl(0, 1, 1, '', 1);
+		}
+		$accountingAccountByDefault = " (" . $langs->trans("AccountingAccountByDefaultShort") . ": " . length_accountg(getDolGlobalString('SALARIES_ACCOUNTING_ACCOUNT_PAYMENT')) . ")";
+		print (getDolGlobalString('SALARIES_ACCOUNTING_ACCOUNT_PAYMENT') ? $accountingAccountByDefault : '');
+		print '</td>';
+
+		// Accountancy code
+		print '<tr class="nowrap">';
+		print '<td>';
+		print $form->editfieldkey("AccountancyCode", 'accountancy_code', $object->accountancy_code, $object, $user->hasRight('user', 'user', 'creer'));
+		print '</td><td>';
+		print $form->editfieldval("AccountancyCode", 'accountancy_code', $object->accountancy_code, $object, $user->hasRight('user', 'user', 'creer'), 'string', '', null, null, '', 0, '');
 		print '</td>';
 		print '</tr>';
 	}
