@@ -1866,6 +1866,12 @@ if ($resql) {
 
 			$datelimit = $db->jdate($obj->datelimite);
 
+//			$sign = ($obj->total_ht < 0 && $obj->total_ttc > 0) || ($obj->total_ht > 0 && $obj->total_ttc < 0) ? -1 : 1;
+//			$obj->total_tva *= $sign;
+//			$obj->total_ttc *= $sign;
+//			$obj->multicurrency_total_vat *= $sign;
+//			$obj->multicurrency_total_ttc *= $sign;
+
 			$facturestatic->id = $obj->id;
 			$facturestatic->ref = $obj->ref;
 			$facturestatic->ref_client = $obj->ref_client;
@@ -1947,6 +1953,11 @@ if ($resql) {
 				$multicurrency_remaincreditnote = $discount->getAvailableDiscounts($companystatic, '', 'rc.fk_facture_source='.$facturestatic->id, 0, 0, 1);
 				$multicurrency_remaintopay = -$multicurrency_remaincreditnote;
 				$multicurrency_totalpay = price2num($facturestatic->multicurrency_total_ttc - $multicurrency_remaintopay);
+			}
+
+			if ($facturestatic->paye) {
+				$remaintopay = 0;
+				$multicurrency_remaintopay = 0;
 			}
 
 			$facturestatic->alreadypaid = $paiement;
