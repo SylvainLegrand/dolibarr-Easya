@@ -832,7 +832,7 @@ abstract class CommonDocGenerator
 		if ($object->trueWeight) {
 			$array_shipment[$array_key.'_total_weight'] = (empty($totalWeight)) ? '' : showDimensionInBestUnit($object->trueWeight, $object->weight_units, "weight", $outputlangs);
 		} elseif (!empty($totalWeight)) {
-			$array_shipment[$array_key.'_total_weight'] = (empty($totalWeight)) ? '' : showDimensionInBestUnit($totalWeight, 0, "weight", $outputlangs, -1, 'no', 1);
+			$array_shipment[$array_key.'_total_weight'] = showDimensionInBestUnit($totalWeight, 0, "weight", $outputlangs, -1, 'no', 1);
 		} else {
 			$array_shipment[$array_key.'_total_weight'] = "";
 		}
@@ -844,7 +844,7 @@ abstract class CommonDocGenerator
 				$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' :  price($object->trueVolume, 0, $outputlangs, 0, 0).' '.measuringUnitString(0, "volume", $object->volume_units);
 			}
 		} elseif (!empty($totalVolume)) {
-			$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' : showDimensionInBestUnit($totalVolume, 0, "volume", $outputlangs, -1, 'no', 1);
+			$array_shipment[$array_key.'_total_volume'] = showDimensionInBestUnit($totalVolume, 0, "volume", $outputlangs, -1, 'no', 1);
 		} else {
 			$array_shipment[$array_key.'_total_volume'] = "";
 		}
