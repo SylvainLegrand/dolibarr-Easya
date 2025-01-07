@@ -4012,8 +4012,11 @@ abstract class CommonObject
 
 		$sourceid = (!empty($sourceid) ? $sourceid : $this->id);
 		$targetid = (!empty($targetid) ? $targetid : $this->id);
-		$sourcetype = (!empty($sourcetype) ? $sourcetype : $this->getElementType());
-		$targettype = (!empty($targettype) ? $targettype : $this->getElementType());
+		$sourcetype = (!empty($sourcetype) ? $sourcetype : $this->element);
+		$targettype = (!empty($targettype) ? $targettype : $this->element);
+		// TODO use this below when all easya is compatible with like module_element label (who has not been used because bugged at this time)
+//		$sourcetype = (!empty($sourcetype) ? $sourcetype : $this->getElementType());
+//		$targettype = (!empty($targettype) ? $targettype : $this->getElementType());
 
 		/*if (empty($sourceid) && empty($targetid))
 		 {
