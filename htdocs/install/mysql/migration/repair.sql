@@ -671,3 +671,8 @@ ALTER TABLE llx_product_attribute_combination_price_level ADD UNIQUE INDEX uk_pr
 
 -- Duration (Sum of linked fichinter) of ticket
 UPDATE llx_ticket AS t1 LEFT JOIN (SELECT (CASE WHEN ee.targettype = 'ticket' THEN ee.fk_target ELSE ee.fk_source END) AS rowid, SUM(fd.duree) as duration FROM llx_element_element AS ee LEFT JOIN llx_fichinterdet AS fd ON fd.fk_fichinter = (CASE WHEN ee.targettype = 'fichinter' THEN ee.fk_target ELSE ee.fk_source END) WHERE (ee.sourcetype = 'fichinter' AND ee.targettype = 'ticket') OR (ee.targettype = 'fichinter' AND ee.sourcetype = 'ticket') GROUP BY (CASE WHEN ee.targettype = 'ticket' THEN ee.fk_target ELSE ee.fk_source END)) AS t2 ON t2.rowid = t1.rowid SET t1.duration = t2.duration;
+
+-- linked object
+ALTER TABLE llx_element_element MODIFY COLUMN sourcetype VARCHAR(64) NOT NULL;
+ALTER TABLE llx_element_element MODIFY COLUMN targettype VARCHAR(64) NOT NULL;
+ALTER TABLE llx_c_type_contact MODIFY COLUMN element VARCHAR(64) NOT NULL;
