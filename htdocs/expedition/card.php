@@ -1627,12 +1627,12 @@ if ($action == 'create') {
 
 							$fk_default_warehouse = (int) $product->fk_default_warehouse;
 							usort($batchlist, function($a, $b) use ($conf, $fk_default_warehouse) {
-								if ($a->warehouse_id != $b->warehouse_id && $a->warehouse_id == $fk_default_warehouse) return -1; // Set default warehouse to first position
-								$rdiff = $a->eatby - $b->eatby;
+								if (((int) $a->warehouse_id) != ((int) $b->warehouse_id) && ((int) $a->warehouse_id) == $fk_default_warehouse) return -1; // Set default warehouse to first position
+								$rdiff = ((int) $a->eatby) - ((int) $b->eatby);
 								if ($rdiff) return $rdiff;
-								$rdiff = $a->sellby - $b->sellby;
+								$rdiff = ((int) $a->sellby) - ((int) $b->sellby);
 								if ($rdiff) return $rdiff;
-								$rdiff = getDolGlobalInt('DO_NOT_TRY_TO_DEFRAGMENT_STOCKS_WAREHOUSE') ? $b->qty - $a->qty : $a->qty - $b->qty;
+								$rdiff = getDolGlobalInt('DO_NOT_TRY_TO_DEFRAGMENT_STOCKS_WAREHOUSE') ? ((int) $b->qty) - ((int) $a->qty) : ((int) $a->qty) - ((int) $b->qty);
 								if ($rdiff) return $rdiff;
 								return strcmp($a->batch, $b->batch);
 							});
