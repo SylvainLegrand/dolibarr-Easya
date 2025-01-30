@@ -11908,6 +11908,26 @@ function getElementProperties($element_type)
 		$classpath = 'compta/tva/class';
 		$module = 'tax';
 		$subdir = '/vat';
+	} elseif ($element_type == 'facturerec') {
+		$classpath = 'compta/facture/class';
+		$classfile = 'facture-rec';
+		$module = 'facture';
+		$classname = 'FactureRec';
+	} elseif ($element_type == 'conferenceorbooth') {
+		$classpath = 'eventorganization/class';
+		$classfile = 'conferenceorbooth';
+		$module = 'eventorganization';
+		$classname = 'ConferenceOrBooth';
+	} elseif ($element_type == 'conferenceorboothattendee') {
+		$classpath = 'eventorganization/class';
+		$classfile = 'conferenceorboothattendee';
+		$module = 'eventorganization';
+		$classname = 'ConferenceOrBoothAttendee';
+	} elseif ($element_type == 'subscription') {
+		$classpath = 'adherents/class';
+		$classfile = 'subscription';
+		$module = 'adherents';
+		$classname = 'Subscription';
 	}
 
 	if (empty($classfile)) {
