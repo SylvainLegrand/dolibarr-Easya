@@ -1632,7 +1632,7 @@ if ($action == 'create') {
 								if ($rdiff) return $rdiff;
 								$rdiff = ((int) $a->sellby) - ((int) $b->sellby);
 								if ($rdiff) return $rdiff;
-								$rdiff = getDolGlobalInt('DO_NOT_TRY_TO_DEFRAGMENT_STOCKS_WAREHOUSE') ? ((int) $b->qty) - ((int) $a->qty) : ((int) $a->qty) - ((int) $b->qty);
+								$rdiff = getDolGlobalInt('DO_NOT_TRY_TO_DEFRAGMENT_STOCKS_WAREHOUSE') ? ((double) $b->qty) - ((double) $a->qty) : ((double) $a->qty) - ((double) $b->qty);
 								if ($rdiff) return $rdiff;
 								return strcmp($a->batch, $b->batch);
 							});
