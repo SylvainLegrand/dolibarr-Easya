@@ -213,6 +213,14 @@ class DocumentController extends Controller
 			exit;
 		}
 
+		$fileSize = dol_filesize($fullpath_original_file);
+		$fileSizeMax = getDolGlobalInt('MAIN_SECURITY_MAXFILESIZE_DOWNLOADED');
+		if ($fileSizeMax && $fileSize > $fileSizeMax) {
+			dol_syslog('ErrorFileSizeTooLarge: ' . $fileSize);
+			print 'ErrorFileSizeTooLarge: ' . $fileSize . ' (max ' . $fileSizeMax . ')';
+			exit;
+		}
+
 		// Hooks
 		$hookmanager->initHooks(array('document'));
 		$parameters = array('ecmfile' => $ecmfile, 'modulepart' => $modulepart, 'original_file' => $original_file,
