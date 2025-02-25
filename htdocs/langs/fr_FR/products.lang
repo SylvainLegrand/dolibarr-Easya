@@ -69,6 +69,7 @@ UpdateVAT=Modifier TVA
 UpdateDefaultPrice=Modifier prix par défaut
 UpdateLevelPrices=Modifier prix pour chaque niveau
 AppliedPricesFrom=Pratiqués à partir du
+AppliedPricesTo=Pratiqués jusqu'au
 SellingPrice=Prix de vente
 SellingPriceHT=Prix de vente HT
 SellingPriceTTC=Prix de vente TTC

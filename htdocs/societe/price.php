@@ -102,6 +102,9 @@ if (empty($reshook)) {
 			$prodcustprice->price = price2num(GETPOST("price"), 'MU');
 			$prodcustprice->price_min = price2num(GETPOST("price_min"), 'MU');
 			$prodcustprice->price_base_type = GETPOST("price_base_type", 'alpha');
+			$prodcustprice->remise_percent = price2num(GETPOST("remise_percent"));
+			$prodcustprice->date_begin = dol_mktime(0, 0, 0, GETPOST('date_beginmonth', 'int'), GETPOST('date_beginday', 'int'), GETPOST('date_beginyear', 'int'), 'tzserver');	// If we enter the 02 january, we need to save the 02 january for server;
+			$prodcustprice->date_end = dol_mktime(0, 0, 0, GETPOST('date_endmonth', 'int'), GETPOST('date_endday', 'int'), GETPOST('date_endyear', 'int'), 'tzserver');	// If we enter the 02 january, we need to save the 02 january for server
 
 			$tva_tx_txt = GETPOST('tva_tx', 'alpha'); // tva_tx can be '8.5'  or  '8.5*'  or  '8.5 (XXX)' or '8.5* (XXX)'
 
@@ -177,6 +180,9 @@ if (empty($reshook)) {
 		$prodcustprice->price_base_type = GETPOST("price_base_type", 'alpha');
 		$prodcustprice->tva_tx = str_replace('*', '', GETPOST("tva_tx"));
 		$prodcustprice->recuperableonly = (preg_match('/\*/', GETPOST("tva_tx")) ? 1 : 0);
+		$prodcustprice->remise_percent = price2num(GETPOST("remise_percent"));
+		$prodcustprice->date_begin = dol_mktime(0, 0, 0, GETPOST('date_beginmonth', 'int'), GETPOST('date_beginday', 'int'), GETPOST('date_beginyear', 'int'), 'tzserver');	// If we enter the 02 january, we need to save the 02 january for server;
+		$prodcustprice->date_end = dol_mktime(0, 0, 0, GETPOST('date_endmonth', 'int'), GETPOST('date_endday', 'int'), GETPOST('date_endyear', 'int'), 'tzserver');	// If we enter the 02 january, we need to save the 02 january for server
 
 		$result = $prodcustprice->update($user, 0, $update_child_soc);
 		if ($result < 0) {
@@ -270,10 +276,10 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 	$pageprev = $page - 1;
 	$pagenext = $page + 1;
 	if (!$sortorder) {
-		$sortorder = "ASC";
+		$sortorder = "ASC,ASC";
 	}
 	if (!$sortfield) {
-		$sortfield = "soc.nom";
+		$sortfield = "soc.nom,t.date_begin";
 	}
 
 		// Build filter to display only concerned lines
@@ -321,6 +327,18 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 		print '<tr><td>'.$langs->trans('RefCustomer').'</td>';
 		print '<td><input name="ref_customer" size="12"></td></tr>';
 
+		// Applied Prices From
+		$date_begin = dol_mktime(0, 0, 0, GETPOST('date_beginmonth', 'int'), GETPOST('date_beginday', 'int'), GETPOST('date_beginyear', 'int'), 'tzserver');	// If we enter the 02 january, we need to save the 02 january for server;
+		print '<tr><td>'.$langs->trans("AppliedPricesFrom").'</td><td>';
+		print $form->selectDate(!empty($date_begin) ? $date_begin : dol_now(), "date_begin", 0, 0, 1, "date_begin");
+		print '</td></tr>';
+
+		// Applied Prices To
+		$date_end = dol_mktime(0, 0, 0, GETPOST('date_endmonth', 'int'), GETPOST('date_endday', 'int'), GETPOST('date_endyear', 'int'), 'tzserver');	// If we enter the 02 january, we need to save the 02 january for server
+		print '<tr><td>'.$langs->trans("AppliedPricesTo").'</td><td>';
+		print $form->selectDate($date_end, "date_end", 0, 0, 1, "date_end");
+		print '</td></tr>';
+
 		// VAT
 		print '<tr><td>'.$langs->trans("VATRate").'</td><td>';
 		print $form->load_tva("tva_tx", GETPOST("tva_tx", "alpha"), $mysoc, '', $object->id, 0, '', false, 1);
@@ -348,6 +366,12 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 		$text = $langs->trans('MinPrice');
 		print $form->textwithpicto($text, $langs->trans("PrecisionUnitIsLimitedToXDecimals", $conf->global->MAIN_MAX_DECIMALS_UNIT), 1, 1);
 		print '<td><input name="price_min" size="10" value="'.GETPOST('price_min', 'int').'">';
+		print '</td></tr>';
+
+		// Discount
+		$remise_percent = price2num(GETPOST("remise_percent"));
+		print '<tr><td>'.$langs->trans("Discount").'</td><td>';
+		print '<input name="remise_percent" size="10" value="'.price($remise_percent).'">';
 		print '</td></tr>';
 
 		// Update all child soc
@@ -390,6 +414,16 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 			print '<tr><td>'.$langs->trans('RefCustomer').'</td>';
 			print '<td><input name="ref_customer" size="12" value="'.dol_escape_htmltag($prodcustprice->ref_customer).'"></td></tr>';
 
+			// Applied Prices From
+			print '<tr><td>'.$langs->trans("AppliedPricesFrom").'</td><td>';
+			print $form->selectDate($prodcustprice->date_begin, "date_begin", 0, 0, 1, "date_begin");
+			print '</td></tr>';
+
+			// Applied Prices To
+			print '<tr><td>'.$langs->trans("AppliedPricesTo").'</td><td>';
+			print $form->selectDate($prodcustprice->date_end, "date_end", 0, 0, 1, "date_end");
+			print '</td></tr>';
+
 			// VAT
 			print '<tr><td>'.$langs->trans("VATRate").'</td><td>';
 			print $form->load_tva("tva_tx", $prodcustprice->tva_tx, $mysoc, '', $staticprod->id, $prodcustprice->recuperableonly);
@@ -428,6 +462,11 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 			}
 			print '</td></tr>';
 
+			// Discount
+			print '<tr><td>'.$langs->trans("Discount").'</td><td>';
+			print '<input name="remise_percent" size="10" value="'.price($prodcustprice->remise_percent).'">';
+			print '</td></tr>';
+
 			// Update all child soc
 			print '<tr><td>';
 			print $langs->trans('ForceUpdateChildPriceSoc');
@@ -447,6 +486,7 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 		print '<br>';
 		print '<!-- showlog_customer_price -->'."\n";
 
+		$sortfield = 't.datec';
 		$filter = array(
 			't.fk_product' => GETPOST('prodid', 'int'),
 			't.fk_soc' => $socid
@@ -478,14 +518,16 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 			print '<td>'.$langs->trans("Product").'</td>';
 			print '<td>'.$langs->trans('RefCustomer').'</td>';
 			print '<td>'.$langs->trans("AppliedPricesFrom").'</td>';
+			print '<td>'.$langs->trans("AppliedPricesTo").'</td>';
 			print '<td class="center">'.$langs->trans("PriceBase").'</td>';
 			print '<td class="right">'.$langs->trans("VAT").'</td>';
 			print '<td class="right">'.$langs->trans("HT").'</td>';
 			print '<td class="right">'.$langs->trans("TTC").'</td>';
 			print '<td class="right">'.$langs->trans("MinPrice").' '.$langs->trans("HT").'</td>';
 			print '<td class="right">'.$langs->trans("MinPrice").' '.$langs->trans("TTC").'</td>';
+			print '<td class="right">'.$langs->trans("Discount").'</td>';
 			print '<td class="right">'.$langs->trans("ChangedBy").'</td>';
-			print '<td></td>';
+			print '<td>'.$langs->trans("DateCreation").'</td>';
 			print '</tr>';
 
 			foreach ($prodcustprice->lines as $line) {
@@ -499,7 +541,8 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 
 				print "<td>".$staticprod->getNomUrl(1)."</td>";
 				print '<td>'.$line->ref_customer.'</td>';
-				print "<td>".dol_print_date($line->datec, "dayhour")."</td>";
+				print "<td>".dol_print_date($line->date_begin, "day", 'tzuserrel')."</td>";
+				print "<td>".dol_print_date($line->date_end, "day", 'tzuserrel')."</td>";
 
 				print '<td class="center">'.$langs->trans($line->price_base_type)."</td>";
 				print '<td class="right">'.vatrate($line->tva_tx, true, $line->recuperableonly)."</td>";
@@ -507,12 +550,13 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 				print '<td class="right">'.price($line->price_ttc)."</td>";
 				print '<td class="right">'.price($line->price_min).'</td>';
 				print '<td class="right">'.price($line->price_min_ttc).'</td>';
+				print '<td class="right">'.price($line->remise_percent).'</td>';
 
 				// User
 				print '<td class="right">';
 				print $userstatic->getNomUrl(-1);
 				print '</td>';
-				print '<td></td>';
+				print "<td>".dol_print_date($line->datec, "dayhour", 'tzuserrel')."</td>";
 			}
 			print "</table>";
 		} else {
@@ -565,12 +609,14 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 		print '<td>'.$langs->trans("Product").'</td>';
 		print '<td>'.$langs->trans('RefCustomer').'</td>';
 		print '<td>'.$langs->trans("AppliedPricesFrom").'</td>';
+		print '<td>'.$langs->trans("AppliedPricesTo").'</td>';
 		print '<td class="center">'.$langs->trans("PriceBase").'</td>';
 		print '<td class="right">'.$langs->trans("VAT").'</td>';
 		print '<td class="right">'.$langs->trans("HT").'</td>';
 		print '<td class="right">'.$langs->trans("TTC").'</td>';
 		print '<td class="right">'.$langs->trans("MinPrice").' '.$langs->trans("HT").'</td>';
 		print '<td class="right">'.$langs->trans("MinPrice").' '.$langs->trans("TTC").'</td>';
+		print '<td class="right">'.$langs->trans("Discount").'</td>';
 		print '<td class="right">'.$langs->trans("ChangedBy").'</td>';
 		print '<td></td>';
 		print '</tr>';
@@ -583,8 +629,10 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 			print '<td class="liste_titre"></td>';
 			print '<td class="liste_titre"></td>';
 			print '<td class="liste_titre"></td>';
+			print '<td class="liste_titre"></td>';
 			print '<td class="liste_titre right"><input type="text" class="flat width75 right" name="search_price" value="'.$search_price.'"></td>';
 			print '<td class="liste_titre right"><input type="text" class="flat width75 right" name="search_price_ttc" value="'.$search_price_ttc.'"></td>';
+			print '<td class="liste_titre"></td>';
 			print '<td class="liste_titre"></td>';
 			print '<td class="liste_titre"></td>';
 			print '<td class="liste_titre"></td>';
@@ -609,13 +657,15 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 				print "<td>".$staticprod->getNomUrl(1)."</td>";
 				print "<td>".$staticprod->label."</td>";
 				print '<td>'.$line->ref_customer.'</td>';
-				print "<td>".dol_print_date($line->datec, "dayhour")."</td>";
+				print '<td class="left">'.dol_print_date($line->date_begin, "day", 'tzuserrel')."</td>";
+				print '<td class="left">'.dol_print_date($line->date_end, "day", 'tzuserrel')."</td>";
 				print '<td class="center">'.$langs->trans($line->price_base_type)."</td>";
 				print '<td class="right">'.vatrate($line->tva_tx.($line->default_vat_code ? ' ('.$line->default_vat_code.')' : ''), true, $line->recuperableonly)."</td>";
 				print '<td class="right">'.price($line->price)."</td>";
 				print '<td class="right">'.price($line->price_ttc)."</td>";
 				print '<td class="right">'.price($line->price_min).'</td>';
 				print '<td class="right">'.price($line->price_min_ttc).'</td>';
+				print '<td class="right">'.price($line->remise_percent).'</td>';
 				// User
 				print '<td class="right">';
 				print $userstatic->getNomUrl(-1);
