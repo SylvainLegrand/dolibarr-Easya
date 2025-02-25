@@ -73,6 +73,18 @@ class Productcustomerprice extends CommonObject
 	public $localtax1_tx;
 	public $localtax2_type;
 	public $localtax2_tx;
+	/**
+	 * @var float|string|''
+	 */
+	public $remise_percent;
+	/**
+	 * @var string
+	 */
+	public $date_begin = '';
+	/**
+	 * @var string
+	 */
+	public $date_end = '';
 
 	/**
 	 * @var int User ID
@@ -150,6 +162,9 @@ class Productcustomerprice extends CommonObject
 		if (isset($this->localtax2_tx)) {
 			$this->localtax2_tx = trim($this->localtax2_tx);
 		}
+		if (empty($this->remise_percent) || !is_numeric($this->remise_percent)) {
+			$this->remise_percent = 0;
+		}
 		if (isset($this->fk_user)) {
 			$this->fk_user = trim($this->fk_user);
 		}
@@ -191,6 +206,8 @@ class Productcustomerprice extends CommonObject
 			}
 		}
 
+		$now = dol_now();
+
 		// Insert request
 		$sql = "INSERT INTO ".$this->db->prefix()."product_customer_price(";
 		$sql .= "entity,";
@@ -210,11 +227,14 @@ class Productcustomerprice extends CommonObject
 		$sql .= "localtax1_tx,";
 		$sql .= "localtax2_type,";
 		$sql .= "localtax2_tx,";
+		$sql .= "remise_percent,";
+		$sql .= "date_begin,";
+		$sql .= "date_end,";
 		$sql .= "fk_user,";
 		$sql .= "import_key";
 		$sql .= ") VALUES (";
 		$sql .= " ".((int) $conf->entity).",";
-		$sql .= " '".$this->db->idate(dol_now())."',";
+		$sql .= " '".$this->db->idate($now)."',";
 		$sql .= " ".(!isset($this->fk_product) ? 'NULL' : "'".$this->db->escape($this->fk_product)."'").",";
 		$sql .= " ".(!isset($this->fk_soc) ? 'NULL' : "'".$this->db->escape($this->fk_soc)."'").",";
 		$sql .= " ".(!isset($this->ref_customer) ? 'NULL' : "'".$this->db->escape($this->ref_customer)."'").",";
@@ -230,6 +250,9 @@ class Productcustomerprice extends CommonObject
 		$sql .= " ".(!isset($this->localtax1_tx) ? 'NULL' : (empty($this->localtax1_tx) ? 0 : $this->localtax1_tx)).",";
 		$sql .= " ".(empty($this->localtax2_type) ? "'0'" : "'".$this->db->escape($this->localtax2_type)."'").",";
 		$sql .= " ".(!isset($this->localtax2_tx) ? 'NULL' : (empty($this->localtax2_tx) ? 0 : $this->localtax2_tx)).",";
+		$sql .= " ".(empty($this->remise_percent) ? '0' : "'".$this->db->escape(price2num($this->remise_percent))."'").",";
+		$sql .= " '".$this->db->idate(empty($this->date_begin) ? $now : $this->date_begin)."',";
+		$sql .= " ".(empty($this->date_end) ? 'NULL' : "'".$this->db->idate($this->date_end)."'").",";
 		$sql .= " ".((int) $user->id).",";
 		$sql .= " ".(!isset($this->import_key) ? 'NULL' : "'".$this->db->escape($this->import_key)."'");
 		$sql .= ")";
@@ -303,6 +326,9 @@ class Productcustomerprice extends CommonObject
 		$sql .= " t.recuperableonly,";
 		$sql .= " t.localtax1_tx,";
 		$sql .= " t.localtax2_tx,";
+		$sql .= " t.remise_percent,";
+		$sql .= " t.date_begin,";
+		$sql .= " t.date_end,";
 		$sql .= " t.fk_user,";
 		$sql .= " t.import_key";
 		$sql .= " FROM ".$this->db->prefix()."product_customer_price as t";
@@ -332,6 +358,9 @@ class Productcustomerprice extends CommonObject
 				$this->recuperableonly = $obj->recuperableonly;
 				$this->localtax1_tx = $obj->localtax1_tx;
 				$this->localtax2_tx = $obj->localtax2_tx;
+				$this->remise_percent = $obj->remise_percent;
+				$this->date_begin = $this->db->jdate($obj->date_begin);
+				$this->date_end = $this->db->jdate($obj->date_end);
 				$this->fk_user = $obj->fk_user;
 				$this->import_key = $obj->import_key;
 
@@ -386,7 +415,7 @@ class Productcustomerprice extends CommonObject
 		global $langs;
 
 		if (empty($sortfield)) {
-			$sortfield = "t.rowid";
+			$sortfield = "t.date_begin";
 		}
 		if (empty($sortorder)) {
 			$sortorder = "DESC";
@@ -412,6 +441,9 @@ class Productcustomerprice extends CommonObject
 		$sql .= " t.localtax2_tx,";
 		$sql .= " t.localtax1_type,";
 		$sql .= " t.localtax2_type,";
+		$sql .= " t.remise_percent,";
+		$sql .= " t.date_begin,";
+		$sql .= " t.date_end,";
 		$sql .= " t.fk_user,";
 		$sql .= " t.import_key,";
 		$sql .= " soc.nom as socname,";
@@ -433,7 +465,7 @@ class Productcustomerprice extends CommonObject
 					$sql .= " AND ".$key." LIKE '%".$this->db->escape($value)."%'";
 				} elseif ($key == 'prod.ref' || $key == 'prod.label') {
 					$sql .= " AND ".$key." LIKE '%".$this->db->escape($value)."%'";
-				} elseif ($key == 't.price' || $key == 't.price_ttc') {
+				} elseif ($key == 't.price' || $key == 't.price_ttc' || $key == 't.remise_percent') {
 					$sql .= " AND ".$key." LIKE '%".price2num($value)."%'";
 				} else {
 					$sql .= " AND ".$key." = ".((int) $value);
@@ -474,6 +506,9 @@ class Productcustomerprice extends CommonObject
 				$line->localtax2_tx = $obj->localtax2_tx;
 				$line->localtax1_type = $obj->localtax1_type;
 				$line->localtax2_type = $obj->localtax2_type;
+				$line->remise_percent = $obj->remise_percent;
+				$line->date_begin = $this->db->jdate($obj->date_begin);
+				$line->date_end = $this->db->jdate($obj->date_end);
 				$line->fk_user = $obj->fk_user;
 				$line->import_key = $obj->import_key;
 				$line->socname = $obj->socname;
@@ -506,10 +541,10 @@ class Productcustomerprice extends CommonObject
 		// phpcs:enable
 		global $langs;
 
-		if (!empty($sortfield)) {
-			$sortfield = "t.rowid";
+		if (empty($sortfield)) {
+			$sortfield = "t.date_begin";
 		}
-		if (!empty($sortorder)) {
+		if (empty($sortorder)) {
 			$sortorder = "DESC";
 		}
 
@@ -530,6 +565,9 @@ class Productcustomerprice extends CommonObject
 		$sql .= " t.recuperableonly,";
 		$sql .= " t.localtax1_tx,";
 		$sql .= " t.localtax2_tx,";
+		$sql .= " t.remise_percent,";
+		$sql .= " t.date_begin,";
+		$sql .= " t.date_end,";
 		$sql .= " t.fk_user,";
 		$sql .= " t.import_key,";
 		$sql .= " soc.nom as socname,";
@@ -585,6 +623,9 @@ class Productcustomerprice extends CommonObject
 				$line->recuperableonly = $obj->recuperableonly;
 				$line->localtax1_tx = $obj->localtax1_tx;
 				$line->localtax2_tx = $obj->localtax2_tx;
+				$line->remise_percent = $obj->remise_percent;
+				$line->date_begin = $this->db->jdate($obj->date_begin);
+				$line->date_end = $this->db->jdate($obj->date_end);
 				$line->fk_user = $obj->fk_user;
 				$line->import_key = $obj->import_key;
 				$line->socname = $obj->socname;
@@ -656,6 +697,9 @@ class Productcustomerprice extends CommonObject
 		if (isset($this->localtax2_tx)) {
 			$this->localtax2_tx = trim($this->localtax2_tx);
 		}
+		if (empty($this->remise_percent) || !is_numeric($this->remise_percent)) {
+			$this->remise_percent = 0;
+		}
 		if (isset($this->fk_user)) {
 			$this->fk_user = trim($this->fk_user);
 		}
@@ -718,6 +762,9 @@ class Productcustomerprice extends CommonObject
 		$sql .= "localtax2_tx,";
 		$sql .= "localtax1_type,";
 		$sql .= "localtax2_type,";
+		$sql .= "remise_percent,";
+		$sql .= "date_begin,";
+		$sql .= "date_end,";
 		$sql .= "fk_user,";
 		$sql .= "import_key";
 
@@ -741,6 +788,9 @@ class Productcustomerprice extends CommonObject
 		$sql .= " t.localtax2_tx,";
 		$sql .= " t.localtax1_type,";
 		$sql .= " t.localtax2_type,";
+		$sql .= " t.remise_percent,";
+		$sql .= " t.date_begin,";
+		$sql .= " t.date_end,";
 		$sql .= " t.fk_user,";
 		$sql .= " t.import_key";
 
@@ -755,11 +805,13 @@ class Productcustomerprice extends CommonObject
 			$this->errors [] = "Error ".$this->db->lasterror();
 		}
 
+		$now = dol_now();
+
 		// Update request
 		$sql = "UPDATE ".$this->db->prefix()."product_customer_price SET";
 
 		$sql .= " entity=".$conf->entity.",";
-		$sql .= " datec='".$this->db->idate(dol_now())."',";
+		$sql .= " datec='".$this->db->idate($now)."',";
 		$sql .= " tms=".(dol_strlen($this->tms) != 0 ? "'".$this->db->idate($this->tms)."'" : 'null').",";
 		$sql .= " fk_product=".(isset($this->fk_product) ? $this->fk_product : "null").",";
 		$sql .= " fk_soc=".(isset($this->fk_soc) ? $this->fk_soc : "null").",";
@@ -776,6 +828,9 @@ class Productcustomerprice extends CommonObject
 		$sql .= " localtax2_tx=".(isset($this->localtax2_tx) ? (empty($this->localtax2_tx) ? 0 : $this->localtax2_tx) : "null").",";
 		$sql .= " localtax1_type=".(!empty($this->localtax1_type) ? "'".$this->db->escape($this->localtax1_type)."'" : "'0'").",";
 		$sql .= " localtax2_type=".(!empty($this->localtax2_type) ? "'".$this->db->escape($this->localtax2_type)."'" : "'0'").",";
+		$sql .= " remise_percent=".(isset($this->remise_percent) ? price2num($this->remise_percent) : "null").",";
+		$sql .= " date_begin='".$this->db->idate(!empty($this->date_begin) ? $this->date_begin : $now)."',";
+		$sql .= " date_end=".(!empty($this->date_end) ? "'".$this->db->idate($this->date_end)."'" : "null").",";
 		$sql .= " fk_user=".$user->id.",";
 		$sql .= " import_key=".(isset($this->import_key) ? "'".$this->db->escape($this->import_key)."'" : "null");
 
@@ -873,6 +928,9 @@ class Productcustomerprice extends CommonObject
 							$prodsocpriceupd->price_base_type = $this->price_base_type;
 							$prodsocpriceupd->tva_tx = $this->tva_tx;
 							$prodsocpriceupd->recuperableonly = $this->recuperableonly;
+							$prodsocpriceupd->remise_percent = $this->remise_percent;
+							$prodsocpriceupd->date_begin = $this->date_begin;
+							$prodsocpriceupd->date_end = $this->date_end;
 
 							$resultupd = $prodsocpriceupd->update($user, 0, $forceupdateaffiliate);
 							if ($resultupd < 0) {
@@ -891,6 +949,9 @@ class Productcustomerprice extends CommonObject
 						$prodsocpricenew->price_base_type = $this->price_base_type;
 						$prodsocpricenew->tva_tx = $this->tva_tx;
 						$prodsocpricenew->recuperableonly = $this->recuperableonly;
+						$prodsocpricenew->remise_percent = $this->remise_percent;
+						$prodsocpricenew->date_begin = $this->date_begin;
+						$prodsocpricenew->date_end = $this->date_end;
 
 						$resultupd = $prodsocpricenew->create($user, 0, $forceupdateaffiliate);
 						if ($resultupd < 0) {
@@ -1036,6 +1097,9 @@ class Productcustomerprice extends CommonObject
 		$this->recuperableonly = '';
 		$this->localtax1_tx = '';
 		$this->localtax2_tx = '';
+		$this->remise_percent = '';
+		$this->date_begin = '';
+		$this->date_end = '';
 		$this->fk_user = '';
 		$this->import_key = '';
 	}
@@ -1084,6 +1148,18 @@ class PriceByCustomerLine
 	public $recuperableonly;
 	public $localtax1_tx;
 	public $localtax2_tx;
+	/**
+	 * @var float
+	 */
+	public $remise_percent;
+	/**
+	 * @var string|int
+	 */
+	public $date_begin = '';
+	/**
+	 * @var string|int
+	 */
+	public $date_end = '';
 
 	/**
 	 * @var int User ID
