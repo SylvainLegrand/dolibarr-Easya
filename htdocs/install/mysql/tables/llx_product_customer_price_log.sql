@@ -28,8 +28,6 @@ create table llx_product_customer_price_log
   fk_product			integer NOT NULL,
   fk_soc				integer DEFAULT 0 NOT NULL,
   ref_customer			varchar(30),
-  date_begin			date NOT NULL,
-  date_end				date,
   price						double(24,8) DEFAULT 0,
   price_ttc					double(24,8) DEFAULT 0,
   price_min					double(24,8) DEFAULT 0,
@@ -42,7 +40,6 @@ create table llx_product_customer_price_log
   localtax1_type            varchar(10)  NOT NULL DEFAULT '0',
   localtax2_tx				double(7,4)  DEFAULT 0,         -- Other local VAT 2
   localtax2_type            varchar(10)  NOT NULL DEFAULT '0',
-  remise_percent		real DEFAULT 0,
   fk_user				integer,
  import_key			varchar(14)                  -- Import key
 )ENGINE=innodb;
