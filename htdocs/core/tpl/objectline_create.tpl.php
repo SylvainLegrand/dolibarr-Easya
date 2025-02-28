@@ -818,6 +818,13 @@ if (!empty($usemargins) && $user->rights->margins->creer) {
 						$('#tva_tx option[value="'+stringforvatrateselection+'"]').prop('selected', true);
 
 						<?php
+						// Price by customer
+						if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES) && !empty($object->socid)) {
+							?>
+						$("#remise_percent").val(data.discount);
+							<?php
+						}
+
 						if (!empty($conf->global->PRODUIT_AUTOFILL_DESC) && $conf->global->PRODUIT_AUTOFILL_DESC == 1) {
 							if (getDolGlobalInt('MAIN_MULTILANGS') && !empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)) { ?>
 						var proddesc = data.desc_trans;
