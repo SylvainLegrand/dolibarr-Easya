@@ -1342,11 +1342,21 @@ if ($ok && GETPOST('force_utf8mb4_on_tables', 'alpha')) {
 				'llx_accounting_account' => 'fk_accounting_account_fk_pcg_version',
 				'llx_accounting_system' => 'fk_accounting_account_fk_pcg_version',
 				'llx_c_type_contact' => 'fk_societe_commerciaux_fk_c_type_contact_code',
-				'llx_societe_commerciaux' => 'fk_societe_commerciaux_fk_c_type_contact_code'
+				'llx_societe_commerciaux' => 'fk_societe_commerciaux_fk_c_type_contact_code',
+				// BEGIN tables specific to EASYA modules
+				'0_llx_banking4dolibarr_bank_record' => 'fk_b4d_bank_record_commission_currency',
+				'1_llx_banking4dolibarr_bank_record' => 'fk_b4d_bank_record_original_currency',
+				'0_llx_c_currencies' => 'fk_b4d_bank_record_commission_currency',
+				'1_llx_c_currencies' => 'fk_b4d_bank_record_original_currency',
+				// END tables specific to EASYA modules
 			);
 
 			foreach ($arrayofforeignkey as $tmptable => $foreignkeyname) {
-				if ($table[0] == $tmptable) {
+				// BEGIN EASYA replacement
+				// if ($table[0] == $tmptable) {
+				if ($table[0] == $tmptable || $table[0] == preg_replace('/^[0-9]_/', '', $tmptable)) {
+				// END EASYA replacement
+
 					print '<tr><td colspan="2">';
 					$sqltmp = "ALTER TABLE ".$db->sanitize($table[0])." DROP FOREIGN KEY ".$db->sanitize($foreignkeyname);
 					print $sqltmp;
@@ -1401,6 +1411,9 @@ if ($ok && GETPOST('force_utf8mb4_on_tables', 'alpha')) {
 
 		// Restore dropped foreign keys
 		foreach ($foreignkeystorestore as $tmptable => $foreignkeyname) {
+			// BEGIN ADD Easya
+			$tmptable = preg_replace('/^[0-9]_/', '', $tmptable);
+			// END ADD Easya
 			$stringtofindinline = "ALTER TABLE .* ADD CONSTRAINT ".$db->sanitize($foreignkeyname);
 			$fileforkeys = DOL_DOCUMENT_ROOT.'/install/mysql/tables/'.$tmptable.'.key.sql';
 			//print 'Search in '.$fileforkeys.' to get '.$stringtofindinline."<br>\n";
