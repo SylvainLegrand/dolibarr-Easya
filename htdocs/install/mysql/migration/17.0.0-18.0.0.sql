@@ -801,3 +801,5 @@ ALTER TABLE llx_user CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP O
 ALTER TABLE llx_salary_extrafields CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 -- 15.0 -> 16.0 rename llx_advtargetemailing to llx_mailing_advtarget
 ALTER TABLE llx_mailing_advtarget CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+ALTER TABLE llx_webhook_target ADD COLUMN type integer DEFAULT 0 NOT NULL AFTER label;
