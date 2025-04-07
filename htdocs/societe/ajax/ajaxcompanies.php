@@ -116,7 +116,7 @@ if ($socid) {
 	$sql .= ")";
 }
 // user right to see all companies
-if (!$user->hasRight('societe', 'client', 'voir') && !$user->socid) {
+if (empty($user->rights->societe->client->voir) && !$user->socid) {
 	$sql .= " AND EXISTS (SELECT sc.fk_soc FROM ".MAIN_DB_PREFIX."societe_commerciaux as sc WHERE sc.fk_soc = s.rowid AND sc.fk_user = ".(int) $user->id .")";
 }
 // Protection for external user access

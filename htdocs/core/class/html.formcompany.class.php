@@ -721,7 +721,7 @@ class FormCompany extends Form
 				$sql .= " AND s.rowid IN (" . $this->db->sanitize(join(',', $limitto)) . ")";
 			}
 			// filter user access
-			if (!$user->hasRight('societe', 'client', 'voir') && !$user->socid) {
+			if (empty($user->rights->societe->client->voir) && !$user->socid) {
 				$sql .= " AND EXISTS (SELECT sc.fk_soc FROM ".MAIN_DB_PREFIX."societe_commerciaux as sc WHERE sc.fk_soc = s.rowid AND sc.fk_user = ".(int) $user->id .")";
 			}
 			if ($user->socid > 0) {
