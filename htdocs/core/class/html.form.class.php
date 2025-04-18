@@ -1760,7 +1760,7 @@ class Form
 	 */
 	public function selectcontacts($socid, $selected = '', $htmlname = 'contactid', $showempty = 0, $exclude = '', $limitto = '', $showfunction = 0, $morecss = '', $options_only = false, $showsoc = 0, $forcecombo = 0, $events = array(), $moreparam = '', $htmlid = '', $multiple = false, $disableifempty = 0)
 	{
-		global $conf, $langs, $hookmanager, $action;
+		global $conf, $langs, $hookmanager, $action, $user;
 
 		$langs->load('companies');
 
@@ -1796,6 +1796,13 @@ class Form
 		}
 		if (!empty($conf->global->CONTACT_HIDE_INACTIVE_IN_COMBOBOX)) {
 			$sql .= " AND sp.statut <> 0";
+		}
+		// filter user access
+		if (empty($user->rights->societe->client->voir) && !$user->socid) {
+			$sql .= " AND EXISTS (SELECT sc.fk_soc FROM ".MAIN_DB_PREFIX."societe_commerciaux as sc WHERE sc.fk_soc = sp.fk_soc AND sc.fk_user = ".(int) $user->id .")";
+		}
+		if ($user->socid > 0) {
+			$sql .= " AND s.rowid = ".((int) $user->socid);
 		}
 		// Add where from hooks
 		$parameters = array();
