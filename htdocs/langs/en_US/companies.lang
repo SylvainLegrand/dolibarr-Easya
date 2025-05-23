@@ -509,4 +509,4 @@ ShowSocialNetworks=Show social networks
 HideSocialNetworks=Hide social networks
 ExternalSystemID=External system ID
 IDOfPaymentInAnExternalSystem=ID of the payment mode into an external system (like Stripe, Paypal, ...)
-ErrorCommercialNotAllowedForThirdparty=The sales representative is not allowed on this company.
+ErrorCommercialNotAllowedForThirdparty=The user %s has not the permission to see all thirdparties and is not an allowed sale representative of the company.

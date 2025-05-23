@@ -1026,7 +1026,6 @@ abstract class CommonObject
 		// phpcs:enable
 		global $user, $langs;
 
-
 		dol_syslog(get_class($this)."::add_contact $fk_socpeople, $type_contact, $source, $notrigger");
 
 		// Check parameters
@@ -1043,20 +1042,20 @@ abstract class CommonObject
 			return -2;
 		}
 
-		if ($this->restrictiononfksoc && empty($user->rights->societe->client->voir)) {
-			$sql_allowed_contacts = 'SELECT COUNT(*) as cnt FROM '.$this->db->prefix().'societe_commerciaux sc';
-			$sql_allowed_contacts.= ' INNER JOIN '.$this->db->prefix().'societe s ON s.rowid = sc.fk_soc';
-			$sql_allowed_contacts.= ' LEFT JOIN '.$this->db->prefix().'socpeople sp ON sp.fk_soc = sc.fk_soc';
-			$sql_allowed_contacts.= ' WHERE sp.rowid = '.(int) $fk_socpeople;
+		if ($this->restrictiononfksoc && property_exists($this, 'socid') && !empty($this->socid) && empty($user->rights->societe->client->voir)) {
+			$sql_allowed_contacts = 'SELECT COUNT(*) as cnt FROM '.$this->db->prefix().'societe_commerciaux as sc';
+			$sql_allowed_contacts.= ' WHERE sc.fk_soc = '.(int) $this->socid;
 			$sql_allowed_contacts.= ' AND sc.fk_user = '.(int) $user->id;
+
 			$resql_allowed_contacts = $this->db->query($sql_allowed_contacts);
+
 			if (!$resql_allowed_contacts) {
 				$this->errors[] = $this->db->lasterror();
 				return -3;
 			} elseif ($obj = $this->db->fetch_object($resql_allowed_contacts)) {
 				if ($obj->cnt == 0) {
 					$langs->load("companies");
-					$this->error = $langs->trans("ErrorCommercialNotAllowedForThirdparty");
+					$this->error = $langs->trans("ErrorCommercialNotAllowedForThirdparty", $user->id);
 					dol_syslog(get_class($this)."::add_contact ".$this->error, LOG_ERR);
 					return -3;
 				}
