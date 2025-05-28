@@ -10264,6 +10264,9 @@ abstract class CommonObject
 				case 'shipping':
 					$element = 'expedition/sending';
 					break;
+				case 'contrat':
+					$element = 'contract';
+					break;
 				default:
 					$element = $this->element;
 			}
