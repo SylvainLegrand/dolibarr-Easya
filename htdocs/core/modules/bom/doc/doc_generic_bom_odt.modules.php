@@ -396,7 +396,7 @@ class doc_generic_bom_odt extends ModelePDFBom
 				$foundtagforlines = 1;
 				try {
 					$listlines = $odfHandler->setSegment('lines');
-				} catch (OdfExceptionSegmentNotFound $e) {
+				} catch (OdfException $e) {
 					// We may arrive here if tags for lines not present into template
 					$foundtagforlines = 0;
 					dol_syslog($e->getMessage(), LOG_INFO);
