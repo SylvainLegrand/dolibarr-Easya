@@ -58,13 +58,13 @@ function doc_getlinedesc($line, $outputlangs, $hideref = 0, $hidedesc = 0, $issu
 		$prodser->fetch($idprod);
 		// If a predefined product and multilang and on other lang, we renamed label with label translated
 		if (getDolGlobalInt('MAIN_MULTILANGS') && ($outputlangs->defaultlang != $langs->defaultlang)) {
-			if (!empty($prodser->multilangs[$outputlangs->defaultlang]["label"]) && $label == $prodser->label) {
+			if (!empty($prodser->multilangs[$outputlangs->defaultlang]["label"]) && ($label == $prodser->label || empty($label))) {
 				$label = $prodser->multilangs[$outputlangs->defaultlang]["label"];
 			}
-			if (!empty($prodser->multilangs[$outputlangs->defaultlang]["description"]) && $desc == $prodser->description) {
+			if (!empty($prodser->multilangs[$outputlangs->defaultlang]["description"]) && ($desc == $prodser->description || empty($desc))) {
 				$desc = $prodser->multilangs[$outputlangs->defaultlang]["description"];
 			}
-			if (!empty($prodser->multilangs[$outputlangs->defaultlang]["note"]) && $note == $prodser->note) {
+			if (!empty($prodser->multilangs[$outputlangs->defaultlang]["note"]) && ($note == $prodser->note || empty($note))) {
 				$note = $prodser->multilangs[$outputlangs->defaultlang]["note"];
 			}
 		}
