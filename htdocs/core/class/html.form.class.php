@@ -8142,7 +8142,7 @@ class Form
 				if ($objecttmp->ismultientitymanaged == 1 && !empty($user->socid)) {
 					if ($objecttmp->element == 'societe') {
 						$sql .= " AND t.rowid = " . ((int) $user->socid);
-					} else {
+					} elseif (empty($objecttmp->donthavefksoc)) {
 						$sql .= " AND t.fk_soc = " . ((int) $user->socid);
 					}
 				}
