@@ -78,12 +78,6 @@ if ($argv[1] == 'mailing') {
 			print " migrating mailing id=".$mailing->id." ref=".$mailing->ref."\n";
 			migrate_mailing_filespath($mailing);
 		}
-
-		// Delete old mailing directory and move the new in mailing
-		if (dol_is_dir($conf->mailing->dir_output . '_temp')) {
-			dol_delete_dir_recursive($conf->mailing->dir_output);
-			dol_move_dir($conf->mailing->dir_output . '_temp', $conf->mailing->dir_output);
-		}
 	} else {
 		print "\n sql error ".$sql;
 		exit();
@@ -106,7 +100,7 @@ function migrate_mailing_filespath($mailing)
 
 	$dir = $conf->mailing->dir_output;
 	$origin = $dir.'/'.get_exdir($mailing->id, 2, 0, 1, $mailing, 'mailing');
-	$destin = $dir.'_temp/'.get_exdir($mailing->id, 0, 0, 1, $mailing, 'mailing');
+	$destin = $dir.'/'.get_exdir($mailing->id, 0, 0, 1, $mailing, 'mailing');
 
 	$error = 0;
 
@@ -135,79 +129,4 @@ function migrate_mailing_filespath($mailing)
 			}
 		}
 	}
-}
-
-/**
- * Move a directory into another name.
- *
- * @param	string	$srcdir 			Source directory
- * @param	string 	$destdir			Destination directory
- * @param	int		$overwriteifexists	Overwrite directory if it already exists (1 by default)
- * @param	int		$indexdatabase		Index new name of files into database.
- * @param	int		$renamedircontent	Also rename contents inside srcdir after the move to match new destination name.
- * @return  boolean 					True if OK, false if KO
- */
-function dol_move_dir($srcdir, $destdir, $overwriteifexists = 1, $indexdatabase = 1, $renamedircontent = 1)
-{
-	$result = false;
-
-	dol_syslog("files.lib.php::dol_move_dir srcdir=".$srcdir." destdir=".$destdir." overwritifexists=".$overwriteifexists." indexdatabase=".$indexdatabase." renamedircontent=".$renamedircontent);
-	$srcexists = dol_is_dir($srcdir);
-	$srcbasename = basename($srcdir);
-	$destexists = dol_is_dir($destdir);
-
-	if (!$srcexists) {
-		dol_syslog("files.lib.php::dol_move_dir srcdir does not exists. Move fails");
-		return false;
-	}
-
-	if ($overwriteifexists || !$destexists) {
-		$newpathofsrcdir = dol_osencode($srcdir);
-		$newpathofdestdir = dol_osencode($destdir);
-
-		// On windows, if destination directory exists and is empty, command fails. So if overwrite is on, we first remove destination directory.
-		// On linux, if destination directory exists and is empty, command succeed. So no need to delete di destination directory first.
-		// Note: If dir exists and is not empty, it will and must fail on both linux and windows even, if option $overwriteifexists is on.
-		if ($overwriteifexists) {
-			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-				if (is_dir($newpathofdestdir)) {
-					@rmdir($newpathofdestdir);
-				}
-			}
-		}
-
-		$result = @rename($newpathofsrcdir, $newpathofdestdir);
-
-		// Now rename contents in the directory after the move to match the new destination
-		if ($result && $renamedircontent) {
-			if (file_exists($newpathofdestdir)) {
-				$destbasename = basename($newpathofdestdir);
-				$files = dol_dir_list($newpathofdestdir);
-				if (!empty($files) && is_array($files)) {
-					foreach ($files as $key => $file) {
-						if (!file_exists($file["fullname"])) {
-							continue;
-						}
-						$filepath = $file["path"];
-						$oldname = $file["name"];
-
-						$newname = str_replace($srcbasename, $destbasename, $oldname);
-						if (!empty($newname) && $newname !== $oldname) {
-							if ($file["type"] == "dir") {
-								$res = dol_move_dir($filepath.'/'.$oldname, $filepath.'/'.$newname, $overwriteifexists, $indexdatabase, $renamedircontent);
-							} else {
-								$moreinfo = array('gen_or_uploaded' => 'unknown');
-								$res = dol_move($filepath.'/'.$oldname, $filepath.'/'.$newname, '0', $overwriteifexists, 0, $indexdatabase, $moreinfo);
-							}
-							if (!$res) {
-								return $result;
-							}
-						}
-					}
-					$result = true;
-				}
-			}
-		}
-	}
-	return $result;
 }
