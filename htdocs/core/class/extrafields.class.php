@@ -2376,7 +2376,7 @@ class ExtraFields
 			$arraytype2label[$key] = $langs->transnoentitiesnoconv($val);
 		}
 
-		if (!getDolGlobalString('MAIN_USE_EXTRAFIELDS_ICON')) {
+		/*if (!getDolGlobalString('MAIN_USE_EXTRAFIELDS_ICON')) {
 			unset($arraytype2label['icon']);
 		}
 		if (!getDolGlobalString('MAIN_USE_GEOPHP')) {
@@ -2384,7 +2384,7 @@ class ExtraFields
 			unset($arraytype2label['multipts']);
 			unset($arraytype2label['linestrg']);
 			unset($arraytype2label['polygon']);
-		}
+		}*/
 
 		return $arraytype2label;
 	}
