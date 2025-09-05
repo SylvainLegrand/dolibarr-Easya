@@ -407,7 +407,16 @@ if (empty($reshook)) {
 	}
 
 	// Add a product line
-	if ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && GETPOST('vatforalllines', 'alpha') !== '' && $usercancreate) {
+	if ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && (GETPOST('alldate_start', 'alpha') || GETPOST('alldate_end', 'alpha')) && $usercancreate) {
+		// Define date start and date end for all line
+		$alldate_start = dol_mktime(GETPOST('alldate_starthour'), GETPOST('alldate_startmin'), 0, GETPOST('alldate_startmonth'), GETPOST('alldate_startday'), GETPOST('alldate_startyear'));
+		$alldate_end = dol_mktime(GETPOST('alldate_endhour'), GETPOST('alldate_endmin'), 0, GETPOST('alldate_endmonth'), GETPOST('alldate_endday'), GETPOST('alldate_endyear'));
+		foreach ($object->lines as $line) {
+			if ($line->product_type == 1) { // only service line
+				$result = $object->updateline($line->id, $line->desc, $line->subprice, $line->qty, $line->remise_percent, $line->tva_tx, $line->localtax1_tx, $line->localtax2_tx, 'HT', $line->info_bits, $line->product_type, 0, $alldate_start, $alldate_end, $line->array_options, $line->fk_unit, $line->multicurrency_subprice, $line->ref_supplier);
+			}
+		}
+	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && GETPOST('vatforalllines', 'alpha') !== '' && $usercancreate) {
 		// Define new vat_rate for all lines
 		$vat_rate = (GETPOST('vatforalllines') ? GETPOST('vatforalllines') : 0);
 		$vat_rate = str_replace('*', '', $vat_rate);
@@ -1679,6 +1688,7 @@ if ($action == 'create') {
 	print '<input type="hidden" name="remise_percent" value="'.(empty($soc->remise_supplier_percent) ? '' : $soc->remise_supplier_percent).'">';
 	print '<input type="hidden" name="origin" value="'.$origin.'">';
 	print '<input type="hidden" name="originid" value="'.$originid.'">';
+	print '<input type="hidden" name="changecompany" value="0">';	// will be set to 1 by javascript so we know post is done after a company change
 	if ($backtopage) {
 		print '<input type="hidden" name="backtopage" value="'.$backtopage.'">';
 	}
@@ -1715,6 +1725,7 @@ if ($action == 'create') {
 					console.log("We have changed the company - Reload page");
 					// reload page
 					$("input[name=action]").val("create");
+					$("input[name=changecompany]").val("1");
 					$("form[name=add]").submit();
 				});
 			});
@@ -1861,6 +1872,15 @@ if ($action == 'create') {
 	print $hookmanager->resPrint;
 
 	if (empty($reshook)) {
+		if (getDolGlobalString('THIRDPARTY_PROPAGATE_EXTRAFIELDS_TO_SUPPLIER_ORDER') && !empty($societe->id)) {
+			// copy from thirdparty
+			$tpExtrafields = new ExtraFields($db);
+			$tpExtrafieldLabels = $tpExtrafields->fetch_name_optionals_label($societe->table_element);
+			if ($societe->fetch_optionals() > 0) {
+				$object->array_options = array_merge($object->array_options, $societe->array_options);
+			}
+		}
+
 		print $object->showOptionals($extrafields, 'create');
 	}
 
@@ -2679,7 +2699,9 @@ if ($action == 'create') {
 
 			// Force mandatory order method
 			print '<tr><td class="fieldrequired">'.$langs->trans("OrderMode").'</td><td>';
-			$formorder->selectInputMethod(GETPOST('methodecommande'), "methodecommande", 1);
+			$methodecommande = '';
+			$methodecommande = GETPOSTISSET("methodecommande", "alpha") ? GETPOST('methodecommande', 'alpha') : getDolGlobalString('ORDER_SUPPLIER_METHOD_BY_DEFAULT');
+			$formorder->selectInputMethod($methodecommande, "methodecommande", 1);
 			print '</td></tr>';
 
 			print '<tr><td>'.$langs->trans("Comment").'</td><td><input class="quatrevingtpercent" type="text" name="comment" value="'.GETPOST('comment').'"></td></tr>';

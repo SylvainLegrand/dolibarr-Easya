@@ -171,6 +171,7 @@ if (!empty($hashp)) {
 			$conf->entity = $entity;
 			$conf->setValues($db);
 		}
+		$fullpath_original_file = DOL_DATA_ROOT . '/' . $ecmfile->filepath . '/' . $ecmfile->filename;
 	} else {
 		$langs->load("errors");
 		httponly_accessforbidden($langs->trans("ErrorFileNotFoundWithSharedLink"), 403, 1);
@@ -218,8 +219,11 @@ if (empty($modulepart)) {
 $check_access = dol_check_secure_access_document($modulepart, $original_file, $entity, $user, '');
 $accessallowed              = $check_access['accessallowed'];
 $sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
-$fullpath_original_file     = $check_access['original_file']; // $fullpath_original_file is now a full path name
-//var_dump($fullpath_original_file.' '.$original_file.' '.$accessallowed);exit;
+if (empty($fullpath_original_file)) {
+	$fullpath_original_file = $check_access['original_file'];
+} // $fullpath_original_file is now a full path name
+//var_dump($fullpath_original_file.' '.$original_file.' '.$refname.' '.$accessallowed);exit;
+
 
 if (!empty($hashp)) {
 	$accessallowed = 1; // When using hashp, link is public so we force $accessallowed

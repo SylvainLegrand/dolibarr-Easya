@@ -572,6 +572,14 @@ abstract class CommonDocGenerator
 			$resarray[$array_key.'_total_discount_ht'] = '';
 		}
 
+		if ($object->element == 'facture' || $object->element == 'invoice_supplier') {
+			if ($object->type == 0) {
+			$resarray[$array_key.'_type_label'] = $outputlangs->transnoentities("PdfInvoiceTitle");
+			} else {
+			$resarray[$array_key.'_type_label'] = (empty($object)) ? '' : $object->getLibType(0);
+			}
+		}
+
 		// Fetch project information if there is a project assigned to this object
 		if ($object->element != "project" && !empty($object->fk_project) && $object->fk_project > 0) {
 			if (!is_object($object->project)) {
@@ -685,6 +693,9 @@ abstract class CommonDocGenerator
 			'line_date_start'=>dol_print_date($line->date_start, 'day'),
 			'line_date_start_locale'=>dol_print_date($line->date_start, 'day', 'tzserver', $outputlangs),
 			'line_date_start_rfc'=>dol_print_date($line->date_start, 'dayrfc'),
+			'line_date_start_real'=>dol_print_date($line->date_start_real, 'day'),
+			'line_date_start_real_locale'=>dol_print_date($line->date_start_real, 'day', 'tzserver', $outputlangs),
+			'line_date_start_real_rfc'=>dol_print_date($line->date_start_real, 'dayrfc'),
 			'line_date_end'=>dol_print_date($line->date_end, 'day'),
 			'line_date_end_locale'=>dol_print_date($line->date_end, 'day', 'tzserver', $outputlangs),
 			'line_date_end_rfc'=>dol_print_date($line->date_end, 'dayrfc'),
@@ -810,6 +821,42 @@ abstract class CommonDocGenerator
 			$array_key.'_size'=>$calculatedVolume.' '.measuringUnitString(0, 'volume'),
 		);
 
+		// Load dim data
+		$tmparray = $object->getTotalWeightVolume();
+		$totalWeight = $tmparray['weight'];
+		$totalVolume = $tmparray['volume'];
+		$totalOrdered = $tmparray['ordered'];
+		$totalToShip = $tmparray['toship'];
+
+		// Set trueVolume and volume_units not currently stored into database
+		if ($object->trueWidth && $object->trueHeight && $object->trueDepth) {
+			$object->trueVolume = $object->trueWidth * $object->trueHeight * $object->trueDepth;
+			$object->volume_units = $object->size_units * 3;
+		}
+
+		$array_shipment[$array_key.'_total_ordered'] = (string) $totalOrdered;
+		$array_shipment[$array_key.'_total_toship'] = (string) $totalToShip;
+
+		if ($object->trueWeight) {
+			$array_shipment[$array_key.'_total_weight'] = (empty($totalWeight)) ? '' : showDimensionInBestUnit($object->trueWeight, $object->weight_units, "weight", $outputlangs);
+		} elseif (!empty($totalWeight)) {
+			$array_shipment[$array_key.'_total_weight'] = showDimensionInBestUnit($totalWeight, 0, "weight", $outputlangs, -1, 'no', 1);
+		} else {
+			$array_shipment[$array_key.'_total_weight'] = "";
+		}
+
+		if (!empty($object->trueVolume)) {
+			if ($object->volume_units < 50) {
+				$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' : showDimensionInBestUnit($object->trueVolume, $object->volume_units, "volume", $outputlangs);
+			} else {
+				$array_shipment[$array_key.'_total_volume'] = (empty($totalVolume)) ? '' :  price($object->trueVolume, 0, $outputlangs, 0, 0).' '.measuringUnitString(0, "volume", $object->volume_units);
+			}
+		} elseif (!empty($totalVolume)) {
+			$array_shipment[$array_key.'_total_volume'] = showDimensionInBestUnit($totalVolume, 0, "volume", $outputlangs, -1, 'no', 1);
+		} else {
+			$array_shipment[$array_key.'_total_volume'] = "";
+		}
+
 		// Add vat by rates
 		foreach ($object->lines as $line) {
 			if (empty($array_shipment[$array_key.'_total_vat_'.$line->tva_tx])) {
@@ -869,7 +916,6 @@ abstract class CommonDocGenerator
 			'line_surface'=>empty($line->surface) ? '' : $line->surface * $line->qty_shipped.' '.measuringUnitString(0, 'surface', $line->surface_units),
 			'line_volume'=>empty($line->volume) ? '' : $line->volume * $line->qty_shipped.' '.measuringUnitString(0, 'volume', $line->volume_units),
 		);
-
 		// Retrieve extrafields
 		$extrafieldkey = $line->element;
 		$array_key = "line";

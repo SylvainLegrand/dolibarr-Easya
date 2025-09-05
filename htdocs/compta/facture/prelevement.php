@@ -103,27 +103,32 @@ if ($reshook < 0) {
 
 if (empty($reshook)) {
 	if ($action == "new" && $usercancreate) {
-		if ($object->id > 0) {
-			$db->begin();
+		if (price2num(GETPOST('remaintopaylesspendingdebit', 'alpha')) > 0 && price2num(GETPOST('withdraw_request_amount', 'alpha')) <= price2num(GETPOST('remaintopaylesspendingdebit', 'alpha'))) {
+			if ($object->id > 0) {
+				$db->begin();
 
-			$newtype = $type;
-			$sourcetype = 'facture';
-			if ($type == 'bank-transfer') {
-				$sourcetype = 'supplier_invoice';
-				$newtype = 'bank-transfer';
+				$newtype = $type;
+				$sourcetype = 'facture';
+				if ($type == 'bank-transfer') {
+					$sourcetype = 'supplier_invoice';
+					$newtype = 'bank-transfer';
+				}
+				$paymentservice = GETPOST('paymentservice');
+
+				$result = $object->demande_prelevement($user, price2num(GETPOST('withdraw_request_amount', 'alpha')), $newtype, $sourcetype, GETPOST('iban', 'int'));
+				if ($result > 0) {
+					$db->commit();
+
+					setEventMessages($langs->trans("RecordSaved"), null, 'mesgs');
+				} else {
+					$db->rollback();
+					setEventMessages($object->error, $object->errors, 'errors');
+				}
 			}
-			$paymentservice = GETPOST('paymentservice');
-
-			$result = $object->demande_prelevement($user, price2num(GETPOST('withdraw_request_amount', 'alpha')), $newtype, $sourcetype);
-
-			if ($result > 0) {
-				$db->commit();
-
-				setEventMessages($langs->trans("RecordSaved"), null, 'mesgs');
-			} else {
-				$db->rollback();
-				setEventMessages($object->error, $object->errors, 'errors');
-			}
+			$action = '';
+		}
+		else {
+			setEventMessages($langs->trans('unprocessedRequest').' '.(price2num(GETPOST('remaintopaylesspendingdebit', 'alpha')) <= 0 ? $langs->trans('paymentsCoveringEntireInvoice') :  $langs->trans('requestedAmountExceedsOutstanding', price2num(GETPOST('withdraw_request_amount', 'alpha')), price2num(GETPOST('remaintopaylesspendingdebit', 'alpha')))), null, 'errors');
 		}
 		$action = '';
 	}
@@ -613,17 +618,35 @@ if ($object->id > 0) {
 	print '<tr><td>'.$langs->trans($title).'</td><td colspan="3">';
 
 	$bac = new CompanyBankAccount($db);
-	$bac->fetch(0, $object->thirdparty->id);
+	$sqliban	= 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe_rib WHERE fk_soc = '.$object->thirdparty->id;
+	$resqliban	= $db->query($sqliban);
+	if ($resqliban) {
+		$numiban	= $db->num_rows($resqliban);
+		print '<form method = "POST" action = "'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&type='.$type.'">';
+		print '<input type = "hidden" name = "action" value = "setiban">';
+		print '<input type = "hidden" name = "token" value="'.newToken().'">';
+		if ($numiban > 0) {
+			print '<select class = "flat quatrevingtpercent" id = "selectiban" name = "iban" style = "cursor: pointer;">';
+			for ($i = 0; $i < $numiban; $i++) {
+				$objiban	= $db->fetch_object($resqliban);
+				$bac->fetch($objiban->rowid);
+				$labelbac	= $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
+				$selectediban = GETPOSTISSET('iban') ? GETPOST('iban', 'int') : (!empty($bac->default_rib) ? $objiban->rowid : '');
+				print '<option name = "selectiban" value = "'.$objiban->rowid.'"'.($selectediban == $objiban->rowid ? ' selected' : '').' >'.$labelbac.'</option>';
+			}
+			print '</select>';
+			print ajax_combobox('selectiban');
+			print '<input type = "submit" class = "button valignmiddle" value = "'.$langs->trans('Modify').'">';
+		} else {
+			if ($numopen || ($type != 'bank-transfer' && $object->mode_reglement_code == 'PRE') || ($type == 'bank-transfer' && $object->mode_reglement_code == 'VIR')) {
+			print img_warning($langs->trans('NoDefaultIBANFound'));
+			}
+		}
+		print '</form>';
 
-	print $bac->iban.(($bac->iban && $bac->bic) ? ' / ' : '').$bac->bic;
-	if (!empty($bac->iban)) {
-		if ($bac->verif() <= 0) {
-			print img_warning('Error on default bank number for IBAN : '.$bac->error_message);
-		}
+		$db->free($resqliban);
 	} else {
-		if ($numopen || ($type != 'bank-transfer' && $object->mode_reglement_code == 'PRE') || ($type == 'bank-transfer' && $object->mode_reglement_code == 'VIR')) {
-			print img_warning($langs->trans("NoDefaultIBANFound"));
-		}
+		dol_print_error($db);
 	}
 
 	print '</td></tr>';
@@ -716,7 +739,49 @@ if ($object->id > 0) {
 
 
 	// For which amount ?
+	// Note: The 2 following SQL requests are wrong but it works because we have one record into pfd for one record into pl and for into p for the same fk_facture_fourn.
+	// The table prelevement and prelevement_lignes and must be removed in future and merged into prelevement_demande
+	// Step 1: Move field fk_... of llx_prelevement into llx_prelevement_lignes
+	// Step 2: Move field fk_... + status into prelevement_demande.
+	$pending = 0;
+	// Get pending requests open with no transfer receipt yet
+	$sql = "SELECT SUM(pfd.amount) as amount";
+	$sql .= " FROM ".MAIN_DB_PREFIX."prelevement_demande as pfd";
+	if ($type == 'bank-transfer') {
+		$sql .= " WHERE pfd.fk_facture_fourn = ".((int) $object->id);
+	} else {
+		$sql .= " WHERE pfd.fk_facture = ".((int) $object->id);
+	}
+	$sql .= " AND pfd.traite = 0";
+	//$sql .= " AND pfd.type = 'ban'";
+	$resql = $db->query($sql);
+	if ($resql) {
+		$obj = $db->fetch_object($resql);
+		if ($obj) {
+			$pending += (float) $obj->amount;
+		}
+	} else {
+		dol_print_error($db);
+	}
+	// Get pending request with a transfer receipt generated but not yet processed
+	$sqlPending = "SELECT SUM(pl.amount) as amount";
+	$sqlPending .= " FROM ".$db->prefix()."prelevement_lignes as pl";
+	$sqlPending .= " INNER JOIN ".$db->prefix()."prelevement as p ON p.fk_prelevement_lignes = pl.rowid";
+	if ($type == 'bank-transfer') {
+		$sqlPending .= " WHERE p.fk_facture_fourn = ".((int) $object->id);
+	} else {
+		$sqlPending .= " WHERE p.fk_facture = ".((int) $object->id);
+	}
+	$sqlPending .= " AND (pl.statut IS NULL OR pl.statut = 0)";
+	$resPending = $db->query($sqlPending);
+	if ($resPending) {
+		if ($objPending = $db->fetch_object($resPending)) {
+			$pending += (float) $objPending->amount;
+		}
+	}
+	$db->free($resPending);
 
+	/*
 	$sql = "SELECT SUM(pfd.amount) as amount";
 	$sql .= " FROM ".MAIN_DB_PREFIX."prelevement_demande as pfd";
 	if ($type == 'bank-transfer') {
@@ -731,12 +796,12 @@ if ($object->id > 0) {
 	if ($resql) {
 		$obj = $db->fetch_object($resql);
 		if ($obj) {
-			$pending = $obj->amount;
+			$pendingAmount = $obj->amount;
 		}
 	} else {
 		dol_print_error($db);
 	}
-
+	*/
 
 	/*
 	 * Buttons
@@ -762,6 +827,8 @@ if ($object->id > 0) {
 				print '<input type="hidden" name="id" value="'.$object->id.'" />';
 				print '<input type="hidden" name="type" value="'.$type.'" />';
 				print '<input type="hidden" name="action" value="new" />';
+				print '<input type="hidden" name="iban" value="'.GETPOST('iban', 'int').'" />';	// InfraS add
+				print '<input type="hidden" name="remaintopaylesspendingdebit" value="'.$remaintopaylesspendingdebit.'" />';	// InfraS add
 				print '<label for="withdraw_request_amount">'.$langs->trans('BankTransferAmount').' </label>';
 				print '<input type="text" id="withdraw_request_amount" name="withdraw_request_amount" value="'.$remaintopaylesspendingdebit.'" size="9" />';
 				print '<input type="submit" class="butAction" value="'.$buttonlabel.'" />';

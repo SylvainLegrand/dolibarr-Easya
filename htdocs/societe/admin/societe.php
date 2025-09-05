@@ -29,6 +29,7 @@
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 
 $langs->loadLangs(array("admin", "companies", "other"));
@@ -95,6 +96,18 @@ if ($action == 'updateoptions') {
 	if (GETPOST('THIRDPARTY_CUSTOMERTYPE_BY_DEFAULT')) {
 		$customertypedefault = GETPOST('defaultcustomertype', 'int');
 		$res = dolibarr_set_const($db, "THIRDPARTY_CUSTOMERTYPE_BY_DEFAULT", $customertypedefault, 'chaine', 0, '', $conf->entity);
+		if (!($res > 0)) {
+			$error++;
+		}
+		if (!$error) {
+			setEventMessages($langs->trans("SetupSaved"), null, 'mesgs');
+		} else {
+			setEventMessages($langs->trans("Error"), null, 'errors');
+		}
+	}
+	if (GETPOST('CONTACTS_DEFAULT_ROLES')) {
+		$rolessearch = GETPOST('activate_CONTACTS_DEFAULT_ROLES', 'array');
+		$res = dolibarr_set_const($db, "CONTACTS_DEFAULT_ROLES", implode(',', $rolessearch), 'chaine', 0, '', $conf->entity);
 		if (!($res > 0)) {
 			$error++;
 		}
@@ -676,6 +689,10 @@ $profid['IDPROF6'][0] = $langs->trans("ProfId6");
 $profid['IDPROF6'][1] = $langs->transcountry('ProfId6', $mysoc->country_code);
 $profid['EMAIL'][0] = $langs->trans("EMail");
 $profid['EMAIL'][1] = $langs->trans('Email');
+$profid['ACCOUNTANCY_CODE_CUSTOMER'][0] = $langs->trans("CustomerAccountancyCodeShort");
+$profid['ACCOUNTANCY_CODE_CUSTOMER'][1] = $langs->trans('CustomerAccountancyCodeShort');
+$profid['ACCOUNTANCY_CODE_SUPPLIER'][0] = $langs->trans("SupplierAccountancyCodeShort");
+$profid['ACCOUNTANCY_CODE_SUPPLIER'][1] = $langs->trans('SupplierAccountancyCodeShort');
 
 $nbofloop = count($profid);
 foreach ($profid as $key => $val) {
@@ -726,23 +743,6 @@ foreach ($profid as $key => $val) {
 		print "</tr>\n";
 	}
 	$i++;
-}
-
-if (isModEnabled('accounting')) {
-	print '<tr class="oddeven">';
-	print '<td colspan="2">'.$langs->trans('CustomerAccountancyCodeShort')."</td>\n";
-	print '<td colspan="2"></td>';
-
-	if (!empty($conf->global->SOCIETE_ACCOUNTANCY_CODE_CUSTOMER_INVOICE_MANDATORY)) {
-		print '<td class="center"><a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=setaccountancycodecustomerinvoicemandatory&token='.newToken().'&value=0">';
-		print img_picto($langs->trans("Activated"), 'switch_on');
-		print '</a></td>';
-	} else {
-		print '<td class="center"><a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=setaccountancycodecustomerinvoicemandatory&token='.newToken().'&value=1">';
-		print img_picto($langs->trans("Disabled"), 'switch_off');
-		print '</a></td>';
-	}
-	print "</tr>\n";
 }
 
 // VAT ID
@@ -929,7 +929,25 @@ if (empty($conf->global->SOCIETE_DISABLE_PROSPECTSCUSTOMERS)) {
 	print '</td>';
 	print '</tr>';
 }
-
+if (getDolGlobalString('THIRDPARTY_SUGGEST_ALSO_ADDRESS_CREATION')) {
+	print '<tr class="oddeven">';
+	print '<td width="80%">'.$langs->trans('ContactsDefaultRoles').'</td>';
+	if (!$conf->use_javascript_ajax) {
+		print '<td class="nowrap right" colspan="2">';
+		print $langs->trans("NotAvailableWhenAjaxDisabled");
+		print "</td>";
+	} else {
+		print '<td width="60" class="right">';
+		$contact = new Contact($db);
+		$contactType = $contact->listeTypeContacts('external', '', 1);
+		$selected = explode(',', getDolGlobalString('CONTACTS_DEFAULT_ROLES'));
+		print $form->multiselectarray('activate_CONTACTS_DEFAULT_ROLES', $contactType, $selected, 0, 0, 'minwidth75imp');
+		print '</td><td class="right">';
+		print '<input type="submit" class="button small eposition" name="CONTACTS_DEFAULT_ROLES" value="'.$langs->trans("Modify").'">';
+		print "</td>";
+	}
+	print '</tr>';
+}
 print '</table>';
 print '</div>';
 

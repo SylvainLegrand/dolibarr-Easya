@@ -928,7 +928,7 @@ class Expedition extends CommonObject
 					$isavirtualproduct = ($product->hasFatherOrChild(1) > 0);
 					// The product is qualified for a check of quantity (must be enough in stock to be added into shipment).
 					if (!$isavirtualproduct || empty($conf->global->PRODUIT_SOUSPRODUITS) || ($isavirtualproduct && empty($conf->global->STOCK_EXCLUDE_VIRTUAL_PRODUCTS))) {  // If STOCK_EXCLUDE_VIRTUAL_PRODUCTS is set, we do not manage stock for kits/virtual products.
-						if ($product_stock < $qty) {
+						if ($product_stock < $qty && $product->stockable_product == Product::ENABLED_STOCK) {
 							$langs->load("errors");
 							$this->error = $langs->trans('ErrorStockIsNotEnoughToAddProductOnShipment', $product->ref);
 							$this->errorhidden = 'ErrorStockIsNotEnoughToAddProductOnShipment';
@@ -1572,7 +1572,7 @@ class Expedition extends CommonObject
 		$sql .= ", cd.fk_multicurrency, cd.multicurrency_code, cd.multicurrency_subprice, cd.multicurrency_total_ht, cd.multicurrency_total_tva, cd.multicurrency_total_ttc, cd.rang";
 		$sql .= ", ed.rowid as line_id, ed.qty as qty_shipped, ed.fk_origin_line, ed.fk_entrepot";
 		$sql .= ", p.ref as product_ref, p.label as product_label, p.fk_product_type";
-		$sql .= ", p.weight, p.weight_units, p.length, p.length_units, p.surface, p.surface_units, p.volume, p.volume_units, p.tosell as product_tosell, p.tobuy as product_tobuy, p.tobatch as product_tobatch";
+		$sql .= ", p.stockable_product, p.weight, p.weight_units, p.length, p.length_units, p.surface, p.surface_units, p.volume, p.volume_units, p.tosell as product_tosell, p.tobuy as product_tobuy, p.tobatch as product_tobatch";
 		$sql .= " FROM ".MAIN_DB_PREFIX."expeditiondet as ed, ".MAIN_DB_PREFIX."commandedet as cd";
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON p.rowid = cd.fk_product";
 		$sql .= " WHERE ed.fk_expedition = ".((int) $this->id);
@@ -1630,6 +1630,7 @@ class Expedition extends CommonObject
 
 				$line->fk_expedition    = $this->id; // id of parent
 
+				$line->stockable_product = $obj->stockable_product;
 				$line->product_type     = $obj->product_type;
 				$line->fk_product     	= $obj->fk_product;
 				$line->fk_product_type	= $obj->fk_product_type;
@@ -2257,7 +2258,7 @@ class Expedition extends CommonObject
 
 				$mouvS = new MouvementStock($this->db);
 				$mouvS->origin = &$this;
-				$mouvS->setOrigin($this->element, $this->id, $obj->cdid, $obj->edid);
+				$mouvS->setOrigin($this->element, $this->id, $obj->cdid, $obj->edid, $this->fk_project);
 
 				if (empty($obj->edbrowid)) {
 					// line without batch detail
@@ -2424,7 +2425,7 @@ class Expedition extends CommonObject
 						//var_dump($this->lines[$i]);
 						$mouvS = new MouvementStock($this->db);
 						$mouvS->origin = &$this;
-						$mouvS->setOrigin($this->element, $this->id);
+						$mouvS->setOrigin($this->element, $this->id, 0,  0, $this->fk_project);
 
 						if (empty($obj->edbrowid)) {
 							// line without batch detail

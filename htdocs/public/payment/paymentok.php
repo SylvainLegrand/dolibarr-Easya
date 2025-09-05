@@ -64,6 +64,8 @@ $hookmanager = new HookManager($db);
 
 $hookmanager->initHooks(array('newpayment'));
 
+// Use browser-defined language
+// $langs->setDefaultLang('auto'); // EASYA : backport from develop, where this line is absent.
 $langs->loadLangs(array("main", "other", "dict", "bills", "companies", "paybox", "paypal"));
 
 // Clean parameters

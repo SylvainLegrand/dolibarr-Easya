@@ -221,26 +221,31 @@ if (empty($reshook)) {
 				$object->ref = $getRef;
 			}
 
-			$object->fk_soc = GETPOST("socid", 'int') > 0 ? GETPOST("socid", 'int') : 0;
-			$object->subject = GETPOST("subject", 'alphanohtml');
-			$object->message = GETPOST("message", 'restricthtml');
+			$object->fk_soc 					= $object->socid = GETPOST("socid", 'int') > 0 ? GETPOST("socid", 'int') : 0;
+			$object->subject 					= GETPOST("subject", 'alphanohtml');
+			$object->message 					= GETPOST("message", 'restricthtml');
 
-			$object->type_code = GETPOST("type_code", 'alpha');
-			$object->type_label = $langs->trans($langs->getLabelFromKey($db, $object->type_code, 'c_ticket_type', 'code', 'label'));
-			$object->category_code = GETPOST("category_code", 'alpha');
-			$object->category_label = $langs->trans($langs->getLabelFromKey($db, $object->category_code, 'c_ticket_category', 'code', 'label'));
-			$object->severity_code = GETPOST("severity_code", 'alpha');
-			$object->severity_label = $langs->trans($langs->getLabelFromKey($db, $object->severity_code, 'c_ticket_severity', 'code', 'label'));
-			$object->email_from = $user->email;
-			$notifyTiers = GETPOST("notify_tiers_at_create", 'alpha');
-			$object->notify_tiers_at_create = empty($notifyTiers) ? 0 : 1;
-			$fk_user_assign = GETPOST("fk_user_assign", 'int');
+			$object->type_code 					= GETPOST("type_code", 'alpha');
+			$object->type_label 				= $langs->trans($langs->getLabelFromKey($db, $object->type_code, 'c_ticket_type', 'code', 'label'));
+			$object->category_code 				= GETPOST("category_code", 'alpha');
+			$object->category_label 			= $langs->trans($langs->getLabelFromKey($db, $object->category_code, 'c_ticket_category', 'code', 'label'));
+			$object->severity_code 				= GETPOST("severity_code", 'alpha');
+			$object->severity_label 			= $langs->trans($langs->getLabelFromKey($db, $object->severity_code, 'c_ticket_severity', 'code', 'label'));
+			$object->fk_user_create 			= $user->id;
+			$object->email_from 				= $user->email;
+			$object->origin_email 				= null;
+
+			$notifyTiers 						= GETPOST("notify_tiers_at_create", 'alpha');
+			$object->notify_tiers_at_create 	= empty($notifyTiers) ? 0 : 1;
+
+			$fk_user_assign 				= GETPOST("fk_user_assign", 'int');
 			if ($fk_user_assign > 0) {
-				$object->fk_user_assign = $fk_user_assign;
-				$object->status = $object::STATUS_ASSIGNED;
+				$object->fk_user_assign 	= $fk_user_assign;
+				$object->status 			= $object::STATUS_ASSIGNED;
 			}
 
 			$object->fk_project = $projectid;
+			$object->fk_project 				= $projectid;
 
 			$id = $object->create($user);
 			if ($id <= 0) {
@@ -282,7 +287,7 @@ if (empty($reshook)) {
 				}
 
 				// Auto assign user
-				if (getDolGlobalString('TICKET_AUTO_ASSIGN_USER_CREATE')) {
+				if ((empty($fk_user_assign) && getDolGlobalInt('TICKET_AUTO_ASSIGN_USER_CREATE') == 1) || (getDolGlobalInt('TICKET_AUTO_ASSIGN_USER_CREATE') == 2)) {
 					$result = $object->assignUser($user, $user->id, 1);
 					$object->add_contact($user->id, "SUPPORTTEC", 'internal');
 				}
@@ -805,8 +810,7 @@ if ($action == 'create' || $action == 'presend') {
 	print $form->buttonsSaveCancel();
 
 	print '</form>'; */
-} elseif (empty($action) || $action == 'view' || $action == 'addlink' || $action == 'dellink' || $action == 'presend' || $action == 'presend_addmessage' || $action == 'close' || $action == 'abandon' || $action == 'delete' || $action == 'editcustomer' || $action == 'progression' || $action == 'categories' || $action == 'reopen'
-	|| $action == 'editsubject' || $action == 'edit_extras' || $action == 'update_extras' || $action == 'edit_extrafields' || $action == 'set_extrafields' || $action == 'classify' || $action == 'sel_contract' || $action == 'edit_message_init' || $action == 'set_status' || $action == 'dellink') {
+} elseif (empty($action) || in_array($action, ['builddoc', 'view', 'addlink', 'addlinkbyref', 'dellink', 'presend', 'presend_addmessage', 'close', 'abandon', 'delete', 'editcustomer', 'progression', 'categories', 'reopen', 'edit_contrat', 'editsubject', 'edit_extras', 'update_extras', 'edit_extrafields', 'set_extrafields', 'classify', 'sel_contract', 'edit_message_init', 'set_status'])) {
 	if ($res > 0) {
 		// or for unauthorized internals users
 		if (!$user->socid && (getDolGlobalString('TICKET_LIMIT_VIEW_ASSIGNED_ONLY') && $object->fk_user_assign != $user->id) && !$user->rights->ticket->manage) {
@@ -975,7 +979,7 @@ if ($action == 'create' || $action == 'presend') {
 			}
 			$morehtmlref .= $form->form_thirdparty($url_page_current.'?track_id='.$object->track_id, $object->socid, $action == 'editcustomer' ? 'editcustomer' : 'none', '', 1, 0, 0, array(), 1);
 			if (!empty($object->socid)) {
-				$morehtmlref .= ' - <a href="'.DOL_URL_ROOT.'/ticket/list.php?socid='.$object->socid.'&sortfield=t.datec&sortorder=desc">'.img_picto($langs->trans("Tickets"), 'ticket', 'class="pictofixedwidth"').' '.$langs->trans("TicketHistory").'</a>';
+				$morehtmlref .= ' - <a href="'.DOL_URL_ROOT.'/ticket/list.php?socid='.$object->socid.'&sortfield=t.datec&sortorder=desc'.(getDolGlobalString('TICKET_CLIENT_OTHER_TICKET_ONLY_OPEN')?'&search_fk_statut[]=openall':'').'">'.img_picto($langs->trans("Tickets"), 'ticket', 'class="pictofixedwidth"').' '.$langs->trans("TicketHistory").'</a>';
 			}
 		}
 
@@ -1124,26 +1128,12 @@ if ($action == 'create' || $action == 'presend') {
 		print '</td>';
 		print '</tr>';
 
-		// Timing (Duration sum of linked fichinter)
+		// Duration (Sum of linked fichinter)
 		if (isModEnabled('ficheinter')) {
-			$object->fetchObjectLinked();
-			$num = count($object->linkedObjects);
-			$timing = 0;
-			$foundinter = 0;
-			if ($num) {
-				foreach ($object->linkedObjects as $objecttype => $objects) {
-					if ($objecttype == "fichinter") {
-						foreach ($objects as $fichinter) {
-							$foundinter++;
-							$timing += $fichinter->duration;
-						}
-					}
-				}
-			}
 			print '<tr><td>';
 			print $form->textwithpicto($langs->trans("TicketDurationAuto"), $langs->trans("TicketDurationAutoInfos"), 1);
 			print '</td><td>';
-			print $foundinter ? convertSecondToTime($timing, 'all', getDolGlobalString('MAIN_DURATION_OF_WORKDAY')) : '';
+			print (isset($object->duration) ? convertSecondToTime($object->duration, 'all', getDolGlobalString('MAIN_DURATION_OF_WORKDAY')) : '');
 			print '</td></tr>';
 		}
 
@@ -1500,6 +1490,7 @@ if ($action == 'create' || $action == 'presend') {
 			$morehtmlright = '';
 			$help = "";
 			$substitutionarray = getCommonSubstitutionArray($outputlangs, 0, $arrayoffamiliestoexclude, $object);
+			complete_substitutions_array($substitutionarray, $outputlangs, $object);
 			$morehtmlright .= $form->textwithpicto('<span class="opacitymedium">'.$langs->trans("TicketMessageSubstitutionReplacedByGenericValues").'</span>', $help, 1, 'helpclickable', '', 0, 3, 'helpsubstitution');
 
 			print '<div>';

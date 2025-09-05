@@ -620,7 +620,7 @@ class FormCompany extends Form
 	 */
 	public function selectCompaniesForNewContact($object, $var_id, $selected = '', $htmlname = 'newcompany', $limitto = '', $forceid = 0, $moreparam = '', $morecss = '')
 	{
-		global $conf, $hookmanager;
+		global $conf, $user, $hookmanager;
 
 		if (!empty($conf->use_javascript_ajax) && !empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
 			// Use Ajax search
@@ -719,6 +719,13 @@ class FormCompany extends Form
 			// For ajax search we limit here. For combo list, we limit later
 			if (is_array($limitto) && count($limitto)) {
 				$sql .= " AND s.rowid IN (" . $this->db->sanitize(join(',', $limitto)) . ")";
+			}
+			// filter user access
+			if (empty($user->rights->societe->client->voir) && !$user->socid) {
+				$sql .= " AND EXISTS (SELECT sc.fk_soc FROM ".MAIN_DB_PREFIX."societe_commerciaux as sc WHERE sc.fk_soc = s.rowid AND sc.fk_user = ".(int) $user->id .")";
+			}
+			if ($user->socid > 0) {
+				$sql .= " AND s.rowid = ".((int) $user->socid);
 			}
 			// Add where from hooks
 			$parameters = array();

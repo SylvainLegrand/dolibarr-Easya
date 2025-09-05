@@ -577,7 +577,7 @@ class Reception extends CommonObject
 					//var_dump($this->lines[$i]);
 					$mouvS = new MouvementStock($this->db);
 					$mouvS->origin = &$this;
-					$mouvS->setOrigin($this->element, $this->id);
+					$mouvS->setOrigin($this->element, $this->id, 0,  0, $this->fk_project);
 
 					if (empty($obj->batch)) {
 						// line without batch detail
@@ -852,6 +852,19 @@ class Reception extends CommonObject
 				return -1;
 			} elseif (empty($product->status_batch) && !empty($batch)) {
 				$this->error = $langs->trans('ErrorProductDoesNotNeedBatchNumber', $product->ref);
+				return -1;
+			}
+
+			// check sell-by / eat-by date is mandatory
+			$errorMsgArr = Productlot::checkSellOrEatByMandatoryFromProductAndDates($product, $sellby, $eatby);
+			if (!empty($errorMsgArr)) {
+				$errorMessage = '<b>' . $product->ref . '</b> : ';
+				$errorMessage .= '<ul>';
+				foreach ($errorMsgArr as $errorMsg) {
+					$errorMessage .= '<li>' . $errorMsg . '</li>';
+				}
+				$errorMessage .= '</ul>';
+				$this->error = $errorMessage;
 				return -1;
 			}
 		}
@@ -1619,7 +1632,7 @@ class Reception extends CommonObject
 
 						$mouvS = new MouvementStock($this->db);
 						$mouvS->origin = &$this;
-						$mouvS->setOrigin($this->element, $this->id);
+						$mouvS->setOrigin($this->element, $this->id, 0,  0, $this->fk_project);
 
 						if (empty($obj->batch)) {
 							// line without batch detail
@@ -1773,7 +1786,7 @@ class Reception extends CommonObject
 						//var_dump($this->lines[$i]);
 						$mouvS = new MouvementStock($this->db);
 						$mouvS->origin = &$this;
-						$mouvS->setOrigin($this->element, $this->id);
+						$mouvS->setOrigin($this->element, $this->id, 0,  0, $this->fk_project);
 
 						if (empty($obj->batch)) {
 							// line without batch detail
@@ -1907,7 +1920,7 @@ class Reception extends CommonObject
 						//var_dump($this->lines[$i]);
 						$mouvS = new MouvementStock($this->db);
 						$mouvS->origin = &$this;
-						$mouvS->setOrigin($this->element, $this->id);
+						$mouvS->setOrigin($this->element, $this->id, 0,  0, $this->fk_project);
 
 						if (empty($obj->batch)) {
 							// line without batch detail

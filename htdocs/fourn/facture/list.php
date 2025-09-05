@@ -45,6 +45,7 @@ require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';	// backport from Dolibarr v21 to correct the display of the remaining amount to be paid
 
 // Load translation files required by the page
 $langs->loadLangs(array('products', 'bills', 'companies', 'projects'));
@@ -94,7 +95,7 @@ $search_paymentcond = GETPOST('search_paymentcond', 'int');
 $search_town = GETPOST('search_town', 'alpha');
 $search_zip = GETPOST('search_zip', 'alpha');
 $search_state = GETPOST("search_state");
-$search_country = GETPOST("search_country", 'int');
+$search_country = GETPOST("search_country", 'alpha');
 $search_type_thirdparty = GETPOST("search_type_thirdparty", 'int');
 $search_user = GETPOST('search_user', 'int');
 $search_sale = GETPOST('search_sale', 'int');
@@ -364,13 +365,62 @@ if (empty($reshook)) {
 			if (!empty($listofbills)) {
 				$nbwithdrawrequestok = 0;
 				foreach ($listofbills as $aBill) {
-					$db->begin();
-					$result = $aBill->demande_prelevement($user, $aBill->resteapayer, 'bank-transfer', 'supplier_invoice');
-					if ($result > 0) {
-						$db->commit();
-						$nbwithdrawrequestok++;
+					// Note: The 2 following SQL requests are wrong but it works because we have one record into pfd for one record into pl and for into p for the same fk_facture_fourn.
+					// The table prelevement and prelevement_lignes and must be removed in future and merged into prelevement_demande
+					// Step 1: Move field fk_... of llx_prelevement into llx_prelevement_lignes
+					// Step 2: Move field fk_... + status into prelevement_demande.
+					$pending = 0;
+					// Get pending requests open with no transfer receipt yet
+					$sql = "SELECT SUM(pfd.amount) as amount";
+					$sql .= " FROM ".MAIN_DB_PREFIX."prelevement_demande as pfd";
+					//if ($type == 'bank-transfer') {
+					$sql .= " WHERE pfd.fk_facture_fourn = ".((int) $aBill->id);
+					//} else {
+					//	$sql .= " WHERE pfd.fk_facture = ".((int) $aBill->id);
+					//}
+					$sql .= " AND pfd.traite = 0";
+					//$sql .= " AND pfd.type = 'ban'";
+					$resql = $db->query($sql);
+					if ($resql) {
+						$obj = $db->fetch_object($resql);
+						if ($obj) {
+							$pending += (float) $obj->amount;
+						}
 					} else {
-						$db->rollback();
+						dol_print_error($db);
+					}
+					// Get pending request with a transfer receipt generated but not yet processed
+					$sqlPending = "SELECT SUM(pl.amount) as amount";
+					$sqlPending .= " FROM ".$db->prefix()."prelevement_lignes as pl";
+					$sqlPending .= " INNER JOIN ".$db->prefix()."prelevement as p ON p.fk_prelevement_lignes = pl.rowid";
+					//if ($type == 'bank-transfer') {
+					$sqlPending .= " WHERE p.fk_facture_fourn = ".((int) $aBill->id);
+					//} else {
+					//	$sqlPending .= " WHERE p.fk_facture = ".((int) $aBill->id);
+					//}
+					$sqlPending .= " AND (pl.statut IS NULL OR pl.statut = 0)";
+					$resPending = $db->query($sqlPending);
+					if ($resPending) {
+						if ($objPending = $db->fetch_object($resPending)) {
+							$pending += (float) $objPending->amount;
+						}
+					}
+					$db->free($resPending);
+
+					$requestAmount = $aBill->resteapayer - $pending;
+					if ($requestAmount > 0) {
+						$db->begin();
+						$result = $aBill->demande_prelevement($user, $requestAmount, 'bank-transfer', 'supplier_invoice');
+						if ($result > 0) {
+							$db->commit();
+							$nbwithdrawrequestok++;
+						} else {
+							$db->rollback();
+							setEventMessages($aBill->error, $aBill->errors, 'errors');
+						}
+					} else {
+						$aBill->error = 'WithdrawRequestErrorNilAmount';
+						$aBill->errors[] = $aBill->error;
 						setEventMessages($aBill->error, $aBill->errors, 'errors');
 					}
 				}
@@ -524,8 +574,26 @@ if ($search_zip) {
 if ($search_state) {
 	$sql .= natural_search("state.nom", $search_state);
 }
-if ($search_country) {
-	$sql .= " AND s.fk_pays IN (".$db->sanitize($search_country).')';
+if (strlen(trim($search_country))) {
+	$arrayofcode = getCountriesInEEC();
+	$country_code_in_EEC = $country_code_in_EEC_without_me = '';
+	foreach ($arrayofcode as $key => $value) {
+		$country_code_in_EEC .= ($country_code_in_EEC ? "," : "")."'".$value."'";
+		if ($value != $mysoc->country_code) {
+			$country_code_in_EEC_without_me .= ($country_code_in_EEC_without_me ? "," : "")."'".$value."'";
+		}
+	}
+	if ($search_country == 'special_allnotme') {
+		$sql .= " AND country.code <> '".$db->escape($mysoc->country_code)."'";
+	} elseif ($search_country == 'special_eec') {
+		$sql .= " AND country.code IN (".$db->sanitize($country_code_in_EEC, 1).")";
+	} elseif ($search_country == 'special_eecnotme') {
+		$sql .= " AND country.code IN (".$db->sanitize($country_code_in_EEC_without_me, 1).")";
+	} elseif ($search_country == 'special_noteec') {
+		$sql .= " AND country.code NOT IN (".$db->sanitize($country_code_in_EEC, 1).")";
+	} else {
+		$sql .= natural_search("country.code", $search_country);
+	}
 }
 if ($search_type_thirdparty != '' && $search_type_thirdparty >= 0) {
 	$sql .= " AND s.fk_typent IN (".$db->sanitize($search_type_thirdparty).')';
@@ -1113,7 +1181,7 @@ if (!empty($arrayfields['state.nom']['checked'])) {
 // Country
 if (!empty($arrayfields['country.code_iso']['checked'])) {
 	print '<td class="liste_titre center">';
-	print $form->select_country($search_country, 'search_country', '', 0, 'minwidth100imp maxwidth100');
+	print $form->select_country($search_country, 'search_country', '', 0, 'minwidth150imp maxwidth150', 'code2', 1, 0, 1, null, 1);
 	print '</td>';
 }
 // Company type
@@ -1416,6 +1484,7 @@ $facturestatic = new FactureFournisseur($db);
 $supplierstatic = new Fournisseur($db);
 $projectstatic = new Project($db);
 $userstatic = new User($db);
+$discount = new DiscountAbsolute($db);	// backport from Dolibarr v21 to correct the display of the remaining amount to be paid
 
 // Loop on record
 // --------------------------------------------------------------------
@@ -1455,9 +1524,14 @@ while ($i < $imaxinloop) {
 	$facturestatic->id = $obj->facid;
 	$facturestatic->ref = $obj->ref;
 	$facturestatic->type = $obj->type;
+	// backport from Dolibarr v21 to correct the display of the remaining amount to be paid
+	$facturestatic->total_ht = $obj->total_ht;
+	$facturestatic->total_tva = $obj->total_vat;
+	$facturestatic->total_ttc = $obj->total_ttc;
 	$facturestatic->ref_supplier = $obj->ref_supplier;
 	$facturestatic->date_echeance = $db->jdate($obj->datelimite);
 	$facturestatic->statut = $obj->fk_statut;
+	$facturestatic->status = $obj->fk_statut;	// backport from Dolibarr v21 to correct the display of the remaining amount to be paid
 	$facturestatic->note_public = $obj->note_public;
 	$facturestatic->note_private = $obj->note_private;
 	$facturestatic->multicurrency_code = $obj->multicurrency_code;
@@ -1482,12 +1556,27 @@ while ($i < $imaxinloop) {
 	$totalcreditnotes = $facturestatic->getSumCreditNotesUsed();
 	$totaldeposits = $facturestatic->getSumDepositsUsed();
 	$totalpay = $paiement + $totalcreditnotes + $totaldeposits;
-	$remaintopay = $obj->total_ttc - $totalpay;
+	// backport from Dolibarr v21 to correct the display of the remaining amount to be paid
+	$remaintopay = price2num($facturestatic->total_ttc - $totalpay);
 	$multicurrency_paiement = $facturestatic->getSommePaiement(1);
 	$multicurrency_totalcreditnotes = $facturestatic->getSumCreditNotesUsed(1);
 	$multicurrency_totaldeposits = $facturestatic->getSumDepositsUsed(1);
 	$multicurrency_totalpay = $multicurrency_paiement + $multicurrency_totalcreditnotes + $multicurrency_totaldeposits;
 	$multicurrency_remaintopay = price2num($facturestatic->multicurrency_total_ttc - $multicurrency_totalpay);
+
+	// backport from Dolibarr v21 to correct the display of the remaining amount to be paid
+	if ($facturestatic->status == FactureFournisseur::STATUS_CLOSED && $facturestatic->close_code == 'discount_vat') {		// If invoice closed with discount for anticipated payment
+		$remaintopay = 0;
+		$multicurrency_remaintopay = 0;
+	}
+	if ($facturestatic->type == FactureFournisseur::TYPE_CREDIT_NOTE && $obj->paye == 1) {		// If credit note closed, we take into account the amount not yet consumed
+		$remaincreditnote = $discount->getAvailableDiscounts($thirdparty, '', 'rc.fk_facture_source='.$facturestatic->id);
+		$remaintopay = -$remaincreditnote;
+		$totalpay = price2num($facturestatic->total_ttc - $remaintopay);
+		$multicurrency_remaincreditnote = $discount->getAvailableDiscounts($thirdparty, '', 'rc.fk_facture_source='.$facturestatic->id, 0, 0, 1);
+		$multicurrency_remaintopay = -$multicurrency_remaincreditnote;
+		$multicurrency_totalpay = price2num($facturestatic->multicurrency_total_ttc - $multicurrency_remaintopay);
+	}
 
 	$facturestatic->alreadypaid = ($paiement ? $paiement : 0);
 	$facturestatic->paye = $obj->paye;

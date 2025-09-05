@@ -352,7 +352,7 @@ class doc_generic_shipment_odt extends ModelePdfExpedition
 						$srctemplatepath,
 						array(
 						'PATH_TO_TMP'	  => $conf->expedition->dir_temp,
-						'ZIP_PROXY'		  => 'PclZipProxy', // PhpZipProxy or PclZipProxy. Got "bad compression method" error when using PhpZipProxy.
+						'ZIP_PROXY'		  => getDolGlobalString('MAIN_ODF_ZIP_PROXY', 'PclZipProxy'), // PhpZipProxy or PclZipProxy. Got "bad compression method" error when using PhpZipProxy.
 						'DELIMITER_LEFT'  => '{',
 						'DELIMITER_RIGHT' => '}'
 						)
@@ -461,6 +461,7 @@ class doc_generic_shipment_odt extends ModelePdfExpedition
 
 				// Replace tags of object + external modules
 				$tmparray = array_merge($tmparray, $this->get_substitutionarray_shipment($object, $outputlangs));
+				$tmparray = array_merge($tmparray, $this->get_substitutionarray_other($outputlangs));
 
 				complete_substitutions_array($tmparray, $outputlangs, $object);
 				// Call the ODTSubstitution hook

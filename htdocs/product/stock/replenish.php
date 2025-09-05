@@ -185,7 +185,7 @@ if ($action == 'order' && GETPOST('valid')) {
 							$productsupplier->getMultiLangs();
 						}
 
-						// if we use supplier description of the products
+						// If we use supplier description of the products
 						if (!empty($productsupplier->desc_supplier) && !empty($conf->global->PRODUIT_FOURN_TEXTS)) {
 							$desc = $productsupplier->desc_supplier;
 						} else {
@@ -208,13 +208,15 @@ if ($action == 'order' && GETPOST('valid')) {
 							$line->multicurrency_total_tva	= $line->multicurrency_total_ht * $tva;
 							$line->multicurrency_total_ttc	= $line->multicurrency_total_ht + $line->multicurrency_total_tva;
 						}
+
 						$line->subprice = $productsupplier->fourn_pu;
 						$line->total_ht = $productsupplier->fourn_pu * $qty;
 						$line->total_tva = $line->total_ht * $tva;
 						$line->total_ttc = $line->total_ht + $line->total_tva;
 						$line->remise_percent = $productsupplier->remise_percent;
+						$line->ref_supplier = $productsupplier->ref_supplier;
 						$line->ref_fourn = $productsupplier->ref_supplier;
-						$line->type = $productsupplier->type;
+						$line->product_type = $productsupplier->type;
 						$line->fk_unit = $productsupplier->fk_unit;
 						$suppliers[$productsupplier->fourn_socid]['lines'][] = $line;
 					}
@@ -264,11 +266,11 @@ if ($action == 'order' && GETPOST('valid')) {
 						$line->localtax2_tx,
 						$line->fk_product,
 						0,
-						$line->ref_fourn,
+						$line->ref_supplier,
 						$line->remise_percent,
 						'HT',
 						0,
-						$line->type,
+						$line->product_type,
 						0,
 						false,
 						null,

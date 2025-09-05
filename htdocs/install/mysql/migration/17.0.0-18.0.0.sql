@@ -575,6 +575,90 @@ UPDATE llx_paiement SET ref = rowid WHERE ref IS NULL OR ref = '';
 -- rename const WORKFLOW_EXPEDITION_CLASSIFY_CLOSED_INVOICE to WORKFLOW_RECEPTION_CLASSIFY_CLOSED_INVOICE
 UPDATE llx_const SET name = 'WORKFLOW_RECEPTION_CLASSIFY_CLOSED_INVOICE' WHERE name = 'WORKFLOW_EXPEDITION_CLASSIFY_CLOSED_INVOICE';
 
+-- ------------------------
+-- Easya 2024
+-- ------------------------
+
+
+
+-- Backport VAT by entity #24965 - Also available on Easya 2022
+-- VMYSQL4.1 DROP INDEX uk_c_tva_id on llx_c_tva;
+-- VPGSQL8.2 DROP INDEX uk_c_tva_id;
+ALTER TABLE llx_c_tva ADD COLUMN entity integer DEFAULT 1 NOT NULL AFTER rowid;
+ALTER TABLE llx_c_tva ADD UNIQUE INDEX uk_c_tva_id (entity, fk_pays, code, taux, recuperableonly);
+
+-- Add input reason on invoice
+ALTER TABLE llx_facture ADD COLUMN fk_input_reason integer NULL DEFAULT NULL AFTER last_main_doc;
+
+-- Product/service managed in stock
+ALTER TABLE llx_product ADD COLUMN stockable_product integer DEFAULT 1 NOT NULL;
+UPDATE llx_product set stockable_product = 0 WHERE fk_product_type = 1;
+
+-- Rename const to add customer categories on not customer/prospect third-party if enabled
+UPDATE llx_const SET name = 'THIRDPARTY_CAN_HAVE_CUSTOMER_CATEGORY_EVEN_IF_NOT_CUSTOMER_PROSPECT' WHERE name = 'THIRDPARTY_CAN_HAVE_CATEGORY_EVEN_IF_NOT_CUSTOMER_PROSPECT_SUPPLIER';
+
+-- add triggers for COMPANY_RIB_XXX
+INSERT INTO llx_c_action_trigger (code,label,description,elementtype,rang) values ('COMPANY_RIB_CREATE','Third party payment information created','Executed when a third party payment information is created','societe',1);
+INSERT INTO llx_c_action_trigger (code,label,description,elementtype,rang) values ('COMPANY_RIB_MODIFY','Third party payment information updated','Executed when a third party payment information is updated','societe',1);
+INSERT INTO llx_c_action_trigger (code,label,description,elementtype,rang) values ('COMPANY_RIB_DELETE','Third party payment information deleted','Executed when a third party payment information is deleted','societe',1);
+
+UPDATE llx_rights_def SET perms = 'thirdparty_paymentinformation' WHERE perms = 'thirdparty_paymentinformation_advance';
+
+-- Fix against empty modules page
+UPDATE llx_const SET value = '' WHERE name LIKE 'MAIN_MODULE_SETUP_ON_LIST_BY_DEFAULT' AND value NOT IN ('common', 'commonkanban');
+
+-- Duration (Sum of linked fichinter) of ticket
+ALTER TABLE llx_ticket ADD COLUMN duration integer AFTER progress;
+UPDATE llx_ticket AS t1 LEFT JOIN (SELECT (CASE WHEN ee.targettype = 'ticket' THEN ee.fk_target ELSE ee.fk_source END) AS rowid, SUM(fd.duree) as duration FROM llx_element_element AS ee LEFT JOIN llx_fichinterdet AS fd ON fd.fk_fichinter = (CASE WHEN ee.targettype = 'fichinter' THEN ee.fk_target ELSE ee.fk_source END) WHERE (ee.sourcetype = 'fichinter' AND ee.targettype = 'ticket') OR (ee.targettype = 'fichinter' AND ee.sourcetype = 'ticket') GROUP BY (CASE WHEN ee.targettype = 'ticket' THEN ee.fk_target ELSE ee.fk_source END)) AS t2 ON t2.rowid = t1.rowid SET t1.duration = t2.duration;
+
+-- Backport MRP develop v21
+-- v19
+UPDATE llx_product_lot SET manufacturing_date = datec WHERE manufacturing_date IS NULL;
+ALTER TABLE llx_product_lot ADD COLUMN qc_frequency integer DEFAULT NULL;
+ALTER TABLE llx_product_lot ADD COLUMN lifetime integer DEFAULT NULL;
+ALTER TABLE llx_mrp_production ADD COLUMN fk_unit integer DEFAULT NULL;
+-- VMYSQL4.1 UPDATE llx_mrp_production as mp INNER JOIN llx_bom_bomline as bbl ON mp.origin_id = bbl.rowid SET mp.fk_unit = bbl.fk_unit WHERE mp.origin_type = 'bomline' AND mk.fk_unit IS NULL;
+-- VMYSQL4.1 UPDATE llx_bom_bomline as bbl INNER JOIN llx_product as p ON p.rowid = bbl.fk_product SET bbl.fk_unit = p.fk_unit WHERE bbl.fk_unit IS NULL;
+CREATE TABLE llx_mrp_production_extrafields
+(
+    rowid                     integer AUTO_INCREMENT PRIMARY KEY,
+    tms                       timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    fk_object                 integer NOT NULL,
+    import_key                varchar(14)                          		-- import key
+) ENGINE=innodb;
+ALTER TABLE llx_mrp_production_extrafields ADD INDEX idx_mrp_production_fk_object(fk_object);
+ALTER TABLE llx_bom_bomline ADD COLUMN tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+-- v20
+ALTER TABLE llx_bom_bom_extrafields DROP INDEX idx_bom_bom_extrafields_fk_object;
+ALTER TABLE llx_bom_bom_extrafields ADD UNIQUE INDEX uk_bom_bom_extrafields_fk_object (fk_object);
+ALTER TABLE llx_mrp_mo_extrafields DROP INDEX idx_mrp_mo_fk_object;
+ALTER TABLE llx_mrp_mo_extrafields ADD UNIQUE INDEX uk_mrp_mo_fk_object (fk_object);
+ALTER TABLE llx_mrp_production_extrafields DROP INDEX idx_mrp_production_fk_object;
+ALTER TABLE llx_mrp_production_extrafields ADD UNIQUE INDEX uk_mrp_production_fk_object (fk_object);
+UPDATE llx_mrp_production SET disable_stock_change = 0 WHERE disable_stock_change IS NULL;
+-- v21
+
+-- ADD fk_soc_rib in prelevement
+ALTER TABLE llx_prelevement_demande ADD COLUMN fk_soc_rib integer DEFAULT NULL;
+ALTER TABLE llx_prelevement_lignes ADD COLUMN fk_soc_rib integer DEFAULT NULL;
+
+-- Update website type
+UPDATE llx_societe_account SET site = 'dolibarr_website' WHERE fk_website > 0 AND site IS NULL;
+ALTER TABLE llx_societe_account MODIFY COLUMN site varchar(128) NOT NULL;
+
+-- Add VAT by department
+ALTER TABLE llx_c_tva ADD COLUMN fk_department_buyer integer DEFAULT NULL AFTER fk_pays;
+ALTER TABLE llx_c_tva ADD INDEX idx_tva_fk_department_buyer (fk_department_buyer);
+ALTER TABLE llx_c_tva ADD CONSTRAINT fk_tva_fk_department_buyer FOREIGN KEY (fk_department_buyer) REFERENCES llx_c_departements (rowid);
+
+-- linked object
+ALTER TABLE llx_element_element MODIFY COLUMN sourcetype VARCHAR(64) NOT NULL;
+ALTER TABLE llx_element_element MODIFY COLUMN targettype VARCHAR(64) NOT NULL;
+ALTER TABLE llx_c_type_contact MODIFY COLUMN element VARCHAR(64) NOT NULL;
+
+-- delete a constant that should not be set
+DELETE FROM llx_const WHERE name = 'INVOICE_USE_RETAINED_WARRANTY' AND value = -1;
+
 -- all tms from old install < 12.0
 ALTER TABLE llx_accounting_account CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 ALTER TABLE llx_accounting_bookkeeping CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
@@ -721,3 +805,8 @@ ALTER TABLE llx_user CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP O
 ALTER TABLE llx_salary_extrafields CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 -- 15.0 -> 16.0 rename llx_advtargetemailing to llx_mailing_advtarget
 ALTER TABLE llx_mailing_advtarget CHANGE COLUMN tms tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+ALTER TABLE llx_webhook_target ADD COLUMN type integer DEFAULT 0 NOT NULL AFTER label;
+
+-- Add accounting plan PCG25-DEV
+INSERT INTO llx_accounting_system (fk_country, pcg_version, label, active) VALUES (  1, 'PCG25-DEV', 'The developed accountancy french plan 2025', 1);
