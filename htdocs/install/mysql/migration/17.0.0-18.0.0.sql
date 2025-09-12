@@ -810,3 +810,6 @@ ALTER TABLE llx_webhook_target ADD COLUMN type integer DEFAULT 0 NOT NULL AFTER 
 
 -- Add accounting plan PCG25-DEV
 INSERT INTO llx_accounting_system (fk_country, pcg_version, label, active) VALUES (  1, 'PCG25-DEV', 'The developed accountancy french plan 2025', 1);
+
+-- Manage images of ticket messages
+UPDATE llx_ecm_files f INNER JOIN llx_actioncomm a ON a.id = SUBSTRING(f.filepath, 8) SET  f.src_object_type = 'ticket', f.src_object_id = a.fk_element WHERE f.filepath LIKE 'agenda/%' AND a.elementtype = 'ticket';
