@@ -2435,8 +2435,8 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 
 				// Todo Edit or delete button
 				// Action
-				if ($user->rights->produit->supprimer || $user->rights->service->supprimer) {
-					print '<td class="right nowraponall">';
+				print '<td class="right nowraponall">';
+				if ($user->hasRight('produit', 'creer') || $user->hasRight('service', 'creer')) {
 					print '<a href="'.$_SERVER["PHP_SELF"].'?action=showlog_customer_price&token='.newToken().'&id='.$object->id.'&socid='.$line->fk_soc.'">';
 					print img_info($langs->trans('PriceByCustomerLog'));
 					print '</a>';
@@ -2445,11 +2445,13 @@ if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
 					print img_edit('default', 0, 'style="vertical-align: middle;"');
 					print '</a>';
 					print ' ';
+				}
+				if ($user->rights->produit->supprimer || $user->rights->service->supprimer) {
 					print '<a class="marginleftonly" href="'.$_SERVER["PHP_SELF"].'?action=delete_customer_price&token='.newToken().'&id='.$object->id.'&lineid='.$line->id.'">';
 					print img_delete('default', 'style="vertical-align: middle;"');
 					print '</a>';
-					print '</td>';
 				}
+				print '</td>';
 
 				print "</tr>\n";
 			}
