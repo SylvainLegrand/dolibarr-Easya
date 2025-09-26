@@ -8,7 +8,7 @@
 
 name: Set reviewer for v18
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
     branches:
       - "18.0"
@@ -19,10 +19,6 @@ on:
 jobs:
   pr18:
     runs-on: ubuntu-latest
-
-    #env:
-    #  GH_TOKEN: ${{ github.token }}
-    #  GH_TOKENS: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
     - name: Generate a token
