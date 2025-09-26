@@ -33,7 +33,7 @@ class MemberCardController extends Controller
 	/**
 	 * @var FormCardWebPortal Form for card
 	 */
-	protected $formCard;
+	public $formCard;
 
 	/**
 	 * Check current access to controller
