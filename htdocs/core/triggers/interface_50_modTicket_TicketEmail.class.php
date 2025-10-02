@@ -316,7 +316,9 @@ class InterfaceTicketEmail extends DolibarrTriggers
 	 * @param string 	$body			email body (first line). Non-translated string.
 	 * @param Ticket 	$object			the ticket thet the email refers to
 	 * @param Translate $langs			the translation object
-	 * @param Array 	$files			['filepath' => [], 'filename' => [''], 'mimetype' => ['']]
+	 * @param Array 	$filepaths		File paths
+	 * @param Array 	$mimetypes		Mime types
+	 * @param Array 	$filenames		File names
 	 * @return void
 	 */
 	private function composeAndSendAdminMessage($sendto, $base_subject, $body, Ticket $object, Translate $langs, $filepaths = array(), $mimetypes = array(), $filenames = array())
@@ -382,7 +384,9 @@ class InterfaceTicketEmail extends DolibarrTriggers
 	 * @param string 	$see_ticket		string indicating the ticket public address
 	 * @param Ticket 	$object			the ticket thet the email refers to
 	 * @param Translate $langs			the translation object
-	 * @param Array 	$files			['filepath' => [], 'filename' => [''], 'mimetype' => ['']]
+	 * @param Array 	$filepaths		File paths
+	 * @param Array 	$mimetypes		Mime types
+	 * @param Array 	$filenames		File names
 	 * @return void
 	 */
 	private function composeAndSendCustomerMessage($sendto, $base_subject, $body, $see_ticket, Ticket $object, Translate $langs, $filepaths = array(), $mimetypes = array(), $filenames = array())
@@ -475,7 +479,9 @@ class InterfaceTicketEmail extends DolibarrTriggers
 	 * @param string 	$see_ticket		string indicating the ticket public address
 	 * @param Ticket 	$object			the ticket thet the email refers to
 	 * @param Translate $langs			the translation object
-	 * @param Array 	$files			['filepath' => [], 'filename' => [''], 'mimetype' => ['']]
+	 * @param Array 	$filepaths		File paths
+	 * @param Array 	$mimetypes		Mime types
+	 * @param Array 	$filenames		File names
 	 * @return void
 	 */
 	private function composeAndSendAssigneeMessage($sendto, $base_subject, $body, $see_ticket, Ticket $object, Translate $langs, $filepaths = array(), $mimetypes = array(), $filenames = array())
