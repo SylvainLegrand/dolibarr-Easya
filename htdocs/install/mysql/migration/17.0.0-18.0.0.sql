@@ -813,3 +813,7 @@ INSERT INTO llx_accounting_system (fk_country, pcg_version, label, active) VALUE
 
 -- Manage images of ticket messages
 UPDATE llx_ecm_files f INNER JOIN llx_actioncomm a ON a.id = SUBSTRING(f.filepath, 8) SET  f.src_object_type = 'ticket', f.src_object_id = a.fk_element WHERE f.filepath LIKE 'agenda/%' AND a.elementtype = 'ticket';
+
+-- default deposit % if payment term needs it on supplier
+ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
+ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
