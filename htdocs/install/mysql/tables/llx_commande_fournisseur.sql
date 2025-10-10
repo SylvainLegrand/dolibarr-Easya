@@ -33,7 +33,7 @@ create table llx_commande_fournisseur
   fk_projet					integer DEFAULT 0,             -- project id
 
   tms						timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  date_creation				datetime,                      -- date de creation 
+  date_creation				datetime,                      -- date de creation
   date_valid				datetime,                      -- date de validation
   date_approve				datetime,                      -- date de approve
   date_approve2				datetime,                      -- date de approve 2 (when double approving is accivated)
@@ -62,6 +62,7 @@ create table llx_commande_fournisseur
   date_livraison			datetime default NULL,
   fk_account				integer,                       -- bank account
   fk_cond_reglement			integer,                       -- condition de reglement
+  deposit_percent			varchar(63) DEFAULT NULL,		-- default deposit % if payment term needs it
   fk_mode_reglement			integer,                       -- mode de reglement
   fk_input_method			integer default 0,            -- id coming from c_input_reason, '0' if no defined
   fk_incoterms				integer,						-- for incoterms

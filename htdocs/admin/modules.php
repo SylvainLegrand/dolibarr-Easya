@@ -1126,6 +1126,7 @@ if ($mode == 'common' || $mode == 'commonkanban') {
 				$codeenabledisable .= '<!-- Message to show: '.$warningmessage.' -->'."\n";
 				$codeenabledisable .= '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?id='.$objMod->numero.'&token='.newToken().'&module_position='.$module_position.'&action=set&token='.newToken().'&value='.$modName.'&mode='.$mode.$param.'"';
 				if ($warningmessage) {
+					// TODO Use a nicer popup
 					$codeenabledisable .= ' onclick="return confirm(\''.dol_escape_js($warningmessage).'\');"';
 				}
 				$codeenabledisable .= '>';

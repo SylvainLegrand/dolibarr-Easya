@@ -202,6 +202,145 @@ if ($ok) {
 	//print '<td class="right">'.join('.',$versionarray).'</td></tr>';
 }
 
+print '</table>';
+
+
+print '<br>';
+
+
+print '<div class="warning" style="padding-top: 10px">';
+print 'Select a link "test" or "confirmed" to launch a reparation on the chosen option...';
+print '</div>';
+print '<br>';
+
+
+print '<table class="liste centpercent" style="border: 1px solid #ccc">';
+print '<tr>';
+print '<th>Option</th>';
+print '<th>Information</th>';
+print '<th>Launch test</th>';
+print '<th>Launch confirmed</th>';
+print '</tr>';
+
+$warning_using_utf8mb4 = '';
+if ($dolibarr_main_db_character_set != 'utf8mb4') {
+	$warning_using_utf8mb4 = '<img src="../theme/eldy/img/warning.png" class="pictofortooltip valignmiddle" title="If you switch to utf8mb4, you must also check the value for $dolibarr_main_db_character_set and $dolibarr_main_db_collation into conf/conf.php file.">';
+}
+
+$sections = [
+	'Standard' => [
+		[
+			'name' => 'standard',
+			'info' => ''
+		]
+	],
+	'Modules' => [
+		[
+			'name' => 'force_disable_of_modules_not_found',
+			'info' => 'Disable modules not found'
+		]
+	],
+	'Files' => [
+		[
+			'name' => 'restore_thirdparties_logos',
+			'info' => 'Restore logos for thirdparties'
+		],
+		[
+			'name' => 'restore_user_pictures',
+			'info' => 'Restore user pictures'
+		],
+		[
+			'name' => 'rebuild_product_thumbs',
+			'info' => 'Rebuild product thumbnails'
+		],
+		[
+			'name' => 'repair_mailing_path',
+			'info' => 'Repair path of mailing files.<br>Should be applied when using emailing module with > 99 mailings.<br>In that case, please also set MAILING_USE_NEW_PATH_FOR_FILES.'
+		]
+	],
+	'Clean tables and data' => [
+		[
+			'name' => 'clean_linked_elements',
+			'info' => 'Clean linked elements'
+		],
+		[
+			'name' => 'clean_menus',
+			'info' => 'Clean menus'
+		],
+		[
+			'name' => 'clean_orphelin_dir',
+			'info' => 'Clean orphan directories'
+		],
+		[
+			'name' => 'clean_product_stock_batch',
+			'info' => 'Clean product stock batch'
+		],
+		[
+			'name' => 'clean_perm_table',
+			'info' => 'Clean permissions table'
+		],
+		[
+			'name' => 'clean_ecm_files_table',
+			'info' => 'Clean ECM files table'
+		],
+		[
+			'name' => 'repair_link_dispatch_lines_supplier_order_lines',
+			'info' => 'Repair link between dispatch lines and supplier order lines'
+		]
+	],
+	'Init data' => [
+		[
+			'name' => 'set_empty_time_spent_amount',
+			'info' => 'Init empty time spent amount'
+		]
+	],
+	'Structure' => [
+		[
+			'name' => 'force_utf8_on_tables',
+			'info' => 'Force utf8 + row=dynamic, for mysql/mariadb only'
+		],
+		[
+			'name' => 'force_utf8mb4_on_tables',
+			'info' => 'Force utf8mb4 + row=dynamic, for mysql/mariadb only' . $warning_using_utf8mb4
+		],
+		[
+			'name' => 'force_collation_from_conf_on_tables',
+			'info' => 'Force '.$conf->db->character_set.'/'.$conf->db->dolibarr_main_db_collation.' + row=dynamic, for mysql/mariadb only'
+		]
+	],
+	'Rebuild sequence' => [
+		[
+			'name' => 'rebuild_sequences',
+			'info' => 'For postgresql only'
+		]
+	]
+];
+
+foreach ($sections as $section => $options) {
+	print '<tr style="background:#f4f4f4;font-weight:bold"><td colspan="5">'.$section.'</td></tr>';
+	foreach ($options as $opt) {
+		$option = $opt['name'];
+		$info = $opt['info'];
+		$value = GETPOST($option, 'alpha') ? GETPOST($option, 'alpha') : 'undefined';
+		// Generate links with the right option and value
+		$url_test = $_SERVER['PHP_SELF'].'?'.$option.'=test';
+		$url_confirmed = $_SERVER['PHP_SELF'].'?'.$option.'=confirmed';
+		print '<tr>';
+		print '<td>' . $option . '</td>';
+		print '<td>' . $info . '</td>';
+		print '<td class="center"><a href="'.$url_test.'" title="Launch test on option '.$option.'">test</a>'.($value == 'test' ? ' (X)' : '').'</td>';
+		print '<td class="center"><a href="'.$url_confirmed.'" title="Launch confirmed on option '.$option.'">confirmed</a>'.($value == 'confirmed' ? ' (X)' : '').'</td>';
+		print '</tr>';
+	}
+}
+print '</table>';
+
+
+print '<br id="sectionresult">';
+
+print '<table cellspacing="0" cellpadding="1" class="centpercent">';
+
+
 $conf->setValues($db);
 // Reset forced setup after the setValues
 if (defined('SYSLOG_FILE')) {
@@ -217,7 +356,7 @@ $oneoptionset = (GETPOST('standard', 'alpha') || GETPOST('restore_thirdparties_l
 	|| GETPOST('clean_perm_table', 'alpha') || GETPOST('clean_ecm_files_table', 'alpha')
 	|| GETPOST('force_disable_of_modules_not_found', 'alpha')
 	|| GETPOST('force_utf8_on_tables', 'alpha') || GETPOST('force_utf8mb4_on_tables', 'alpha') || GETPOST('force_collation_from_conf_on_tables', 'alpha')
-	|| GETPOST('rebuild_sequences', 'alpha') || GETPOST('recalculateinvoicetotal', 'alpha'));
+	|| GETPOST('rebuild_sequences', 'alpha') || GETPOST('recalculateinvoicetotal', 'alpha')) || GETPOST('repair_mailing_path', 'alpha');
 
 if ($ok && $oneoptionset) {
 	// Show wait message
@@ -1945,6 +2084,84 @@ if ($ok && GETPOST('recalculateinvoicetotal') == 'confirmed') {
 	} else {
 		$db->rollback();
 	}
+}
+
+// Repair mailing path
+if ($ok && GETPOST('repair_mailing_path')) {
+	global $user;
+	$sav_user = is_object($user) ? clone $user : $user;
+
+	require_once DOL_DOCUMENT_ROOT.'/comm/mailing/class/mailing.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+
+	print '<tr><td colspan="2"><br>*** Repair mailing path<br>';
+
+	/**
+	 * Migrate file from old path to new one for mailing $mailing
+	 *
+	 * @param 	Mailing $mailing		Object mailing
+	 * @return 	void
+	 */
+	function migrate_mailing_filespath($mailing)
+	{
+		global $db, $conf, $user;
+
+		$dir = $conf->mailing->dir_output;
+		$origin = $dir.'/'.get_exdir($mailing->id, 2, 0, 1, $mailing, 'mailing');
+		$destin = $dir.'/'.get_exdir($mailing->id, 0, 0, 1, $mailing, 'mailing');
+
+		$origin_osencoded = dol_osencode($origin);
+		$destin_osencoded = dol_osencode($destin);
+		dol_mkdir($destin);
+
+		$user = new User($db);
+		$user->fetch($mailing->user_creation_id);
+
+		if (dol_is_dir($origin)) {
+			$handle = opendir($origin_osencoded);
+			if (is_resource($handle)) {
+				while (($file = readdir($handle)) !== false) {
+					if ($file != '.' && $file != '..' && is_dir($origin_osencoded.'/'.$file)) {
+						$thumbs = opendir($origin_osencoded.'/'.$file);
+						if (is_resource($thumbs)) {
+							dol_mkdir($destin.'/'.$file);
+							while (($thumb = readdir($thumbs)) !== false) {
+								$res = dol_move($origin.'/'.$file.'/'.$thumb, $destin.'/'.$file.'/'.$thumb);
+								$msg = ($res ? '  * Migration successful' : 'Migration failed') . ' for file '.$origin.'/'.$file.'.<br>';
+								print ($msg);
+							}
+							// dol_delete_dir($origin.'/'.$file);
+						}
+					} else {
+						if (dol_is_file($origin.'/'.$file)) {
+							$res = dol_move($origin.'/'.$file, $destin.'/'.$file);
+							$msg = ($res ? '  * Migration successful' : 'Migration failed') . ' for file '.$origin.'/'.$file.'.<br>';
+							print ($msg);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	$mailing = new Mailing($db);
+
+	$sql = "SELECT rowid as mid from ".MAIN_DB_PREFIX."mailing"; // Get list of all mailing
+	$resql = $db->query($sql);
+	if ($resql) {
+		while ($obj = $db->fetch_object($resql)) {
+			$mailing->fetch($obj->mid);
+			print "Migrating mailing id=".$mailing->id." ref=".$mailing->ref."<br>\n";
+			migrate_mailing_filespath($mailing);
+		}
+	} else {
+		$ok = 0;
+		dol_print_error($db);
+	}
+
+	$user = $sav_user;
+
+	print '</td></tr>';
 }
 
 print '</table>';

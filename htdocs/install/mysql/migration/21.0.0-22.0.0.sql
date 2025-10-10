@@ -329,3 +329,7 @@ ALTER TABLE llx_blockedlog ADD COLUMN debuginfo mediumtext;
 ALTER TABLE llx_webhook_history ADD COLUMN trigger_code text NOT NULL;
 ALTER TABLE llx_webhook_history ADD COLUMN error_message text;
 ALTER TABLE llx_webhook_history MODIFY COLUMN url varchar(255);
+
+-- default deposit % if payment term needs it on supplier
+ALTER TABLE llx_supplier_proposal ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
+ALTER TABLE llx_commande_fournisseur ADD COLUMN deposit_percent varchar(63) DEFAULT NULL AFTER fk_cond_reglement;
