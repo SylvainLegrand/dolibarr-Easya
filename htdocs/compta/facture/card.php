@@ -3252,11 +3252,10 @@ if ($action == 'create') {
 
 	// when bank account is empty (means not override by payment mode form a other object, like third-party), try to use default value
 	if ($socid > 0 && $fk_account) {	// A company has already been set and it has a default fk_account
-		$fk_account = GETPOSTISSET('fk_account') ? GETPOST("fk_account", 'int') : $fk_account;	// The GETPOST is used only if form was posted to avoid to take default value, because in such case, the default must be the one of the company
+		$fk_account = (GETPOSTINT('fk_account') > 0) ? GETPOST("fk_account", 'int') : $fk_account;	// The GETPOST is used only if form was posted to avoid to take default value, because in such case, the default must be the one of the company
 	} else {	// No company forced
 		$fk_account = GETPOST("fk_account", 'int');
 	}
-
 	if (!empty($soc->id)) {
 		$absolute_discount = $soc->getAvailableDiscounts();
 	}
