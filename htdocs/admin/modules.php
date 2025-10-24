@@ -673,7 +673,7 @@ $nbofactivatedmodules = count($conf->modules);
 
 // Define $nbmodulesnotautoenabled - TODO This code is at different places
 $nbmodulesnotautoenabled = count($conf->modules);
-$listofmodulesautoenabled = array('agenda', 'fckeditor', 'export', 'import');
+$listofmodulesautoenabled = array('user', 'agenda', 'fckeditor', 'export', 'import');
 foreach ($listofmodulesautoenabled as $moduleautoenable) {
 	if (in_array($moduleautoenable, $conf->modules)) {
 		$nbmodulesnotautoenabled--;
@@ -689,7 +689,7 @@ if ($mode == 'common' || $mode == 'commonkanban') {
 	$desc .= ' '.$langs->trans("ModulesDesc2", '{picto2}');
 	$desc = str_replace('{picto}', img_picto('', 'switch_off', 'class="size15x"'), $desc);
 	$desc = str_replace('{picto2}', img_picto('', 'setup', 'class="size15x"'), $desc);
-	if ($nbmodulesnotautoenabled <= getDolGlobalInt('MAIN_MIN_NB_ENABLED_MODULE_FOR_WARNING', 1)) {	// If only minimal initial modules enabled
+	if ($nbmodulesnotautoenabled < getDolGlobalInt('MAIN_MIN_NB_ENABLED_MODULE_FOR_WARNING', 1)) {	// If only minimal initial modules enabled
 		$deschelp .= '<div class="info hideonsmartphone">'.$desc."<br></div>\n";
 	}
 	if (getDolGlobalString('MAIN_SETUP_MODULES_INFO')) {	// Show a custom message. A good usage for SaaS with option MAIN_MIN_NB_ENABLED_MODULE_FOR_WARNING.
@@ -1323,7 +1323,7 @@ if ($mode == 'marketplace') {
 
 		$categories_tree = $remotestore->getCategories($options['categorie']);		// Call API to get the categories
 
-		$products_list = $remotestore->getProducts($options);
+		$products_list = $remotestore->getProducts($options);	// Get list of product from all sources
 
 		$previouslink = $remotestore->get_previous_link();
 
@@ -1337,7 +1337,7 @@ if ($mode == 'marketplace') {
 					<input type="hidden" name="mode" value="marketplace">
 					<input type="hidden" name="page_y" value="">
 					<div class="divsearchfield">
-						<input name="search_keyword" placeholder="<?php echo $langs->trans('Keyword') ?>" id="search_keyword" type="text" class="minwidth200" value="<?php echo dolPrintHTMLForAttribute($options['search']) ?>">
+						<input name="search_keyword" placeholder="<?php echo $langs->trans('Keyword') ?>" id="search_keyword" type="text" class="minwidth200" value="<?php echo dolPrintHTMLForAttribute($options['search']) ?>" spellcheck="false">
 					</div>
 					<div class="divsearchfield">
 						<input name="buttonsubmit" class="button buttongen reposition" value="<?php echo $langs->trans('Search') ?>" type="submit">
@@ -1570,18 +1570,17 @@ if ($mode == 'develop') {
 	print '<br>';
 
 	// Marketplace
+	print '<div class="div-table-responsive-no-min">';
 	print '<table summary="list_of_modules" class="noborder centpercent">'."\n";
 	print '<tr class="liste_titre">'."\n";
-	//print '<td>'.$langs->trans("Logo").'</td>';
-	print '<td colspan="2">'.$langs->trans("DevelopYourModuleDesc").'</td>';
-	print '<td>'.$langs->trans("URL").'</td>';
+	print '<td colspan="3">'.$langs->trans("DevelopYourModuleDesc").'</td>';
 	print '</tr>';
 
 	print '<tr class="oddeven" height="80">'."\n";
-	print '<td class="center">';
+	print '<td class="center hideonsmartphone">';
 	print '<div class="imgmaxheight50 logo_setup"></div>';
 	print '</td>';
-	print '<td>'.$langs->trans("TryToUseTheModuleBuilder", $langs->transnoentitiesnoconv("ModuleBuilder")).'</td>';
+	print '<td class="minwidth500imp smallonsmartphone">'.$langs->trans("TryToUseTheModuleBuilder", $langs->transnoentitiesnoconv("ModuleBuilder")).'</td>';
 	print '<td class="maxwidth300">';
 	if (isModEnabled('modulebuilder')) {
 		print $langs->trans("SeeTopRightMenu");
@@ -1593,16 +1592,17 @@ if ($mode == 'develop') {
 
 	print '<tr class="oddeven" height="80">'."\n";
 	$url = 'https://partners.dolibarr.org';
-	print '<td class="center">';
+	print '<td class="center hideonsmartphone">';
 	print'<a href="'.$url.'" target="_blank" rel="noopener noreferrer external"><img border="0" class="imgautosize imgmaxwidth180" src="'.DOL_URL_ROOT.'/theme/dolibarr_preferred_partner.png"></a>';
 	print '</td>';
-	print '<td>'.$langs->trans("DoliPartnersDesc").'</td>';
+	print '<td class="minwidth500imp smallonsmartphone">'.$langs->trans("DoliPartnersDesc").'</td>';
 	print '<td><a href="'.$url.'" target="_blank" rel="noopener noreferrer external">';
 	print img_picto('', 'url', 'class="pictofixedwidth"');
 	print $url.'</a></td>';
 	print '</tr>';
 
 	print "</table>\n";
+	print '</div>';
 
 	print dol_get_fiche_end();
 }
