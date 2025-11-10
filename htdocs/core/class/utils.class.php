@@ -168,8 +168,25 @@ class Utils
 		}
 
 		// Recreate temp dir that are not automatically recreated by core code for performance purpose, we need them
-		if (!empty($conf->api->enabled)) {
-			dol_mkdir($conf->api->dir_temp);
+		if (isModEnabled('api')) {
+			if (isModEnabled('multicompany')) {
+				global $mc;
+
+				if (is_object($mc)) {
+					$entitiesList = $mc->getEntitiesList();
+					foreach ($entitiesList as $entityId => $entity) {
+						if ($entityId > 1) {
+							$apiDir = DOL_DATA_ROOT.'/'.$entityId.'/api';
+							if (is_dir($apiDir)) { // only create API temp directory of entity (can create routes.php file from Restler API) if Restler API is enabled (API directory exists)
+								$apiTempDir = DOL_DATA_ROOT.'/'.$entityId.'/api/temp/';
+								dol_mkdir($apiTempDir);
+							}
+						}
+					}
+				}
+			}
+
+			dol_mkdir($conf->api->dir_temp); // create API temp directory for main entity (can create routes.php file from Restler API)
 		}
 		dol_mkdir($conf->user->dir_temp);
 
