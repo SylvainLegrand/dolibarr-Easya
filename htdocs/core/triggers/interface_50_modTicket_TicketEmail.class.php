@@ -144,7 +144,7 @@ class InterfaceTicketEmail extends DolibarrTriggers
 				//@see Ticket::copyFilesForTicket()
 				//@see ticket/card.php call to Ticket::copyFilesForTicket()
 				$formmail = new FormMail($this->db);
-				$formmail->trackid = ('');
+				$formmail->trackid = ('tic');
 				$attachedfiles = $formmail->get_attached_files();
 				$filepaths = $attachedfiles['paths'];
 				$filenames = $attachedfiles['names'];
