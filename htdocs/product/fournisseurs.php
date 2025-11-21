@@ -985,7 +985,7 @@ END;
 				include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
 
 				$varpage = empty($contextpage) ? $_SERVER["PHP_SELF"] : $contextpage;
-				$selectedfields = $form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, $varpage); // This also change content of $arrayfields
+				$selectedfields = $form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, $varpage, getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')); // backport from v22 // This also change content of $arrayfields
 
 				print '<form action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'" method="post" name="formulaire">';
 				print '<input type="hidden" name="token" value="'.newToken().'">';
@@ -1003,6 +1003,12 @@ END;
 				$nbfields = 0;
 
 				print '<tr class="liste_titre">';
+				// backport from v22 // Action column
+				if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+					print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', '', $sortfield, $sortorder, 'center maxwidthsearch actioncolumn ');
+					$nbfields++;
+				}
+				// end of backport v22
 				if (!empty($arrayfields['pfp.datec']['checked'])) {
 					print_liste_field_titre("AppliedPricesFrom", $_SERVER["PHP_SELF"], "pfp.datec", "", $param, "", $sortfield, $sortorder, '', '', 1);
 					$nbfields++;
@@ -1106,14 +1112,30 @@ END;
 					$parameters = array('id_fourn'=>(!empty($id_fourn)?$id_fourn:''), 'prod_id'=>$object->id, 'nbfields'=>$nbfields);
 					$reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters, $object, $action);
 				}
-				print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
-				$nbfields++;
+				// backport from v22
+				if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+					print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
+					$nbfields++;
+				}
+				// end of backport v22
 				print "</tr>\n";
 
 				if (is_array($product_fourn_list)) {
 					foreach ($product_fourn_list as $productfourn) {
 						print '<tr class="oddeven">';
 
+						// backport from v22 // Action column
+						if (getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+							print '<td class="center nowraponall">';
+							if ($usercancreate) {
+								print '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?id='.((int) $object->id).'&socid='.((int) $productfourn->fourn_id).'&action=edit_price&token='.newToken().'&rowid='.((int) $productfourn->product_fourn_price_id).'">'.img_edit()."</a>";
+								print ' &nbsp; ';
+								print '<a href="'.$_SERVER['PHP_SELF'].'?id='.((int) $object->id).'&socid='.((int) $productfourn->fourn_id).'&action=ask_remove_pf&token='.newToken().'&rowid='.((int) $productfourn->product_fourn_price_id).'">'.img_picto($langs->trans("Remove"), 'delete').'</a>';
+							}
+
+							print '</td>';
+						}
+						// end of backport v22
 						// Date from
 						if (!empty($arrayfields['pfp.datec']['checked'])) {
 							print '<td>'.dol_print_date(($productfourn->fourn_date_creation ? $productfourn->fourn_date_creation : $productfourn->date_creation), 'dayhour', 'tzuserrel').'</td>';
@@ -1291,16 +1313,19 @@ END;
 						}
 
 						// Modify-Remove
-						print '<td class="center nowraponall">';
+						// backport from v22
+						if (!getDolGlobalString('MAIN_CHECKBOX_LEFT_COLUMN')) {
+							print '<td class="center nowraponall">';
 
-						if ($usercancreate) {
-							print '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?id='.((int) $object->id).'&socid='.((int) $productfourn->fourn_id).'&action=update_price&token='.newToken().'&rowid='.((int) $productfourn->product_fourn_price_id).'">'.img_edit()."</a>";
-							print ' &nbsp; ';
-							print '<a href="'.$_SERVER['PHP_SELF'].'?id='.((int) $object->id).'&socid='.((int) $productfourn->fourn_id).'&action=ask_remove_pf&token='.newToken().'&rowid='.((int) $productfourn->product_fourn_price_id).'">'.img_picto($langs->trans("Remove"), 'delete').'</a>';
+							if ($usercancreate) {
+								print '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?id='.((int) $object->id).'&socid='.((int) $productfourn->fourn_id).'&action=update_price&token='.newToken().'&rowid='.((int) $productfourn->product_fourn_price_id).'">'.img_edit()."</a>";
+								print ' &nbsp; ';
+								print '<a href="'.$_SERVER['PHP_SELF'].'?id='.((int) $object->id).'&socid='.((int) $productfourn->fourn_id).'&action=ask_remove_pf&token='.newToken().'&rowid='.((int) $productfourn->product_fourn_price_id).'">'.img_picto($langs->trans("Remove"), 'delete').'</a>';
+							}
+
+							print '</td>';
 						}
-
-						print '</td>';
-
+						// end of backport v22
 						print '</tr>';
 					}
 
