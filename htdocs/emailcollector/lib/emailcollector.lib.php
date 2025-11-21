@@ -115,8 +115,8 @@ function getDParameters($part)
  * @param 	object 	$mbox 	object connection imaap
  * @return 	array 			type, filename, pos
  */
-
-function getAttachments($jk, $mbox) {
+function getAttachments($jk, $mbox)
+{
 	$structure = imap_fetchstructure($mbox, $jk, FT_UID);  // @phan-suppress-current-line PhanTypeMismatchArgumentInternal
 	$parts = getParts($structure);
 	$fpos = 2;
