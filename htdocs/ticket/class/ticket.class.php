@@ -2527,7 +2527,7 @@ class Ticket extends CommonObject
 		$maxheightmini = 72;
 
 		$formmail = new FormMail($this->db);
-		$formmail->trackid = (is_null($forcetrackid) ? 'tic'.$this->id : '');
+		$formmail->trackid = (is_null($forcetrackid) ? 'tic'.$this->id : $forcetrackid);
 		$attachedfiles = $formmail->get_attached_files();
 
 		$filepath = $attachedfiles['paths'];
