@@ -202,9 +202,6 @@ if (empty($reshook)) {
 
 			$object->fk_project 				= $projectid;
 
-			// File transfer
-			$object->copyFilesForTicket();
-
 			$id = $object->create($user);
 			if ($id <= 0) {
 				$error++;
@@ -245,6 +242,11 @@ if (empty($reshook)) {
 					$result = $object->assignUser($user, $user->id, 1);
 					$object->add_contact($user->id, "SUPPORTTEC", 'internal');
 				}
+			}
+
+			if (!$error) {
+				// File transfer
+				$object->copyFilesForTicket('tic');		// trackid is forced to '' because files were uploaded when no id for ticket exists yet and trackid was ''
 			}
 
 			if (!$error) {
@@ -667,7 +669,7 @@ if ($action == 'create' || $action == 'presend') {
 
 	print load_fiche_titre($langs->trans('NewTicket'), '', 'ticket');
 
-	$formticket->trackid = '';		// TODO Use a unique key to avoid conflict in upload file feature
+	// $formticket->trackid = '';		// TODO Use a unique key to avoid conflict in upload file feature
 	$formticket->withfromsocid = $socid ? $socid : $user->socid;
 	$formticket->withfromcontactid = $contactid ? $contactid : '';
 	$formticket->withtitletopic = 1;
