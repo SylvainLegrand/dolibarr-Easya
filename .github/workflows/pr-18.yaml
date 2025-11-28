@@ -16,11 +16,10 @@ on:
     branches:
       - "18.0"
 
-
 permissions:
   pull-requests: write
   issues: write
-  
+
 jobs:
   assign-and-label-v18:
     runs-on: ubuntu-latest
@@ -47,18 +46,26 @@ jobs:
         echo "env.url=${{env.url}}"
           gh pr edit "${{env.url}}" --add-label "Issue for v18 maintenance Team"
 
-    - name: Assign reviewer 1
-      env:
-        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        url: ${{ github.event.pull_request.html_url }}
+    - name: Set reviewers except PR author
+      id: set-reviewers
       run: |
-        echo "env.url=${{env.url}}"
-        gh pr edit "${{env.url}}" --add-reviewer lvessiller-opendsi
+        # Liste des reviewers à ajuster selon équipe
+        REVIEWERS=("lvessiller-opendsi" "rycks")
+        AUTHOR="${{ github.event.pull_request.user.login }}"
+        FINAL_REVIEWERS=()
+        for reviewer in "${REVIEWERS[@]}"; do
+          if [ "$reviewer" != "$AUTHOR" ]; then
+            FINAL_REVIEWERS+=("$reviewer")
+          fi
+        done
+        echo "reviewers=$(IFS=, ; echo "${FINAL_REVIEWERS[*]}")" >> $GITHUB_OUTPUT
 
-    - name: Assign reviewer 2
+    - name: Assign reviewers
+      if: steps.set-reviewers.outputs.reviewers != ''
       env:
         GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         url: ${{ github.event.pull_request.html_url }}
+        reviewers: ${{ steps.set-reviewers.outputs.reviewers }}
       run: |
-        echo "env.url=${{env.url}}"
-        gh pr edit "${{env.url}}" --add-reviewer rycks
+        echo "Assigning reviewers: ${{env.reviewers}}"
+        gh pr edit "${{env.url}}" --add-reviewer "${{env.reviewers}}"

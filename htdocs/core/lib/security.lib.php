@@ -877,8 +877,11 @@ function checkUserAccessToObject($user, array $featuresarray, $object = 0, $tabl
 		if ($feature == 'project') {
 			$feature = 'projet';
 		}
-		if ($feature == 'task') {
-			$feature = 'projet_task';
+		if ($feature == 'projet' && !empty($feature2) && is_array($feature2) && !empty(array_intersect(array('project_task', 'projet_task'), $feature2))) {
+			$feature = 'project_task';
+		}
+		if ($feature == 'task' || $feature == 'projet_task') {
+			$feature = 'project_task';
 		}
 		if ($feature == 'eventorganization') {
 			$feature = 'agenda';
@@ -899,7 +902,7 @@ function checkUserAccessToObject($user, array $featuresarray, $object = 0, $tabl
 		$checksoc = array('societe'); // Test for object Societe
 		$checkparentsoc = array('agenda', 'contact', 'contrat'); // Test on entity + link to third party on field $dbt_keyfield. Allowed if link is empty (Ex: contacts...).
 		$checkproject = array('projet', 'project'); // Test for project object
-		$checktask = array('projet_task'); // Test for task object
+		$checktask = array('projet_task', 'project_task'); // Test for task object
 		$checkhierarchy = array('expensereport', 'holiday');	// check permission among the hierarchy of user
 		$checkuser = array('bookmark');	// check permission among the fk_user (must be myself or null)
 		$nocheck = array('barcode', 'stock'); // No test
@@ -1034,6 +1037,7 @@ function checkUserAccessToObject($user, array $featuresarray, $object = 0, $tabl
 					return false;
 				}
 			} else {
+				$sharedelement = 'project'; // for multicompany compatibility
 				$sql = "SELECT COUNT(dbt.".$dbt_select.") as nb";
 				$sql .= " FROM ".MAIN_DB_PREFIX.$dbtablename." as dbt";
 				$sql .= " WHERE dbt.".$dbt_select." IN (".$db->sanitize($objectid, 1).")";
