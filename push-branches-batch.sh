@@ -25,32 +25,49 @@ pushed=0
 failed=0
 
 # Process branches in batches
+refspecs=()
+batch_count=0
+
 while IFS= read -r branch; do
-    # Collect branches for this batch
-    refspecs=""
-    batch_count=0
+    refspecs+=("upstream/$branch:refs/heads/$branch")
+    batch_count=$((batch_count + 1))
     
-    while [ $batch_count -lt $BATCH_SIZE ] && IFS= read -r branch; do
-        refspecs="$refspecs upstream/$branch:refs/heads/$branch"
-        batch_count=$((batch_count + 1))
-        pushed=$((pushed + 1))
-    done <<< "$branch$(cat)"
-    
+    # When batch is full, push it
+    if [ $batch_count -eq $BATCH_SIZE ]; then
+        batch_num=$((batch_num + 1))
+        echo "[$batch_num] Pushing batch of $batch_count branches..."
+        
+        if git push origin "${refspecs[@]}"; then
+            echo "  ✓ Batch $batch_num successful"
+            pushed=$((pushed + batch_count))
+        else
+            echo "  ✗ Batch $batch_num failed"
+            failed=$((failed + batch_count))
+        fi
+        
+        # Reset for next batch
+        refspecs=()
+        batch_count=0
+    fi
+done < "$BRANCHES_FILE"
+
+# Push any remaining branches in the last partial batch
+if [ ${#refspecs[@]} -gt 0 ]; then
     batch_num=$((batch_num + 1))
-    echo "[$batch_num] Pushing batch of $batch_count branches..."
+    echo "[$batch_num] Pushing final batch of ${#refspecs[@]} branches..."
     
-    # Push this batch
-    if git push origin $refspecs; then
+    if git push origin "${refspecs[@]}"; then
         echo "  ✓ Batch $batch_num successful"
+        pushed=$((pushed + ${#refspecs[@]}))
     else
         echo "  ✗ Batch $batch_num failed"
-        failed=$((failed + batch_count))
+        failed=$((failed + ${#refspecs[@]}))
     fi
-    
-done < "$BRANCHES_FILE"
+fi
 
 echo ""
 echo "Summary:"
 echo "  Total: $TOTAL"
 echo "  Pushed: $pushed"
 echo "  Failed: $failed"
+

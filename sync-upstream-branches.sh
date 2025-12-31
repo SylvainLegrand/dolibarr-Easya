@@ -43,10 +43,10 @@ git fetch upstream --no-tags
 echo ""
 echo "Step 3: Getting list of branches to sync..."
 # Get list of all upstream branches
-git branch -r | grep "upstream/" | sed 's|  upstream/||' | sed 's/^[[:space:]]*//' | sort > /tmp/upstream_branches.txt
+git branch -r | grep "upstream/" | sed 's|  upstream/||' | sort > /tmp/upstream_branches.txt
 
 # Get list of all origin branches  
-git branch -r | grep "origin/" | sed 's|  origin/||' | sed 's/^[[:space:]]*//' | sort > /tmp/origin_branches.txt
+git branch -r | grep "origin/" | sed 's|  origin/||' | sort > /tmp/origin_branches.txt
 
 # Find branches that need to be pushed
 comm -13 /tmp/origin_branches.txt /tmp/upstream_branches.txt > /tmp/branches_to_push.txt
