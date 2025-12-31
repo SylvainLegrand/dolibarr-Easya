@@ -25,7 +25,9 @@ jobs:
           
       - name: Add upstream remote
         run: |
-          git remote add upstream https://github.com/Easya-Solutions/dolibarr.git || true
+          if ! git remote get-url upstream &>/dev/null; then
+            git remote add upstream https://github.com/Easya-Solutions/dolibarr.git
+          fi
           git remote set-url upstream https://github.com/Easya-Solutions/dolibarr.git
           
       - name: Fetch upstream branches

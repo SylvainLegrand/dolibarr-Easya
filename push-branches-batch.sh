@@ -15,7 +15,9 @@ set -e
 
 BATCH_SIZE=50
 
-# Determine input source
+# Determine input source and set up cleanup
+CLEANUP_FILE=""
+
 if [ -n "$1" ]; then
     BRANCHES_FILE="$1"
     if [ ! -f "$BRANCHES_FILE" ]; then
@@ -28,7 +30,8 @@ if [ -n "$1" ]; then
 else
     # Read from stdin into a secure temp file
     BRANCHES_FILE=$(mktemp)
-    trap "rm -f '$BRANCHES_FILE'" EXIT
+    CLEANUP_FILE="$BRANCHES_FILE"
+    trap "rm -f '$CLEANUP_FILE'" EXIT
     cat > "$BRANCHES_FILE"
     INPUT_SOURCE="stdin"
 fi
