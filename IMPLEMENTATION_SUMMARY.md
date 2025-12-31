@@ -75,10 +75,15 @@ The branches have been fetched locally but need to be pushed to the GitHub fork.
 # Ensure upstream is fetched
 git fetch upstream --no-tags
 
-# Push all branches
-git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | while read branch; do
+# Push all branches using secure temp files
+BRANCHES_FILE=$(mktemp)
+trap "rm -f '$BRANCHES_FILE'" EXIT
+
+git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' > "$BRANCHES_FILE"
+
+while read branch; do
     git push origin "upstream/$branch:refs/heads/$branch"
-done
+done < "$BRANCHES_FILE"
 ```
 
 ## Branch List Summary

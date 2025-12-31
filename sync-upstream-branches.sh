@@ -42,22 +42,27 @@ git fetch upstream --no-tags
 
 echo ""
 echo "Step 3: Getting list of branches to sync..."
-# Get list of all upstream branches
-git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | sort > "/tmp/upstream_branches_$$.txt"
+# Get list of all upstream branches (using mktemp for security)
+UPSTREAM_BRANCHES=$(mktemp)
+ORIGIN_BRANCHES=$(mktemp)
+BRANCHES_TO_PUSH=$(mktemp)
+
+# Ensure cleanup on exit
+trap "rm -f '$UPSTREAM_BRANCHES' '$ORIGIN_BRANCHES' '$BRANCHES_TO_PUSH'" EXIT
+
+git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | sort > "$UPSTREAM_BRANCHES"
 
 # Get list of all origin branches  
-git branch -r | grep "origin/" | sed 's|^[[:space:]]*origin/||' | sort > "/tmp/origin_branches_$$.txt"
+git branch -r | grep "origin/" | sed 's|^[[:space:]]*origin/||' | sort > "$ORIGIN_BRANCHES"
 
 # Find branches that need to be pushed
-comm -13 "/tmp/origin_branches_$$.txt" "/tmp/upstream_branches_$$.txt" > "/tmp/branches_to_push_$$.txt"
+comm -13 "$ORIGIN_BRANCHES" "$UPSTREAM_BRANCHES" > "$BRANCHES_TO_PUSH"
 
-TOTAL_BRANCHES=$(wc -l < "/tmp/branches_to_push_$$.txt")
+TOTAL_BRANCHES=$(wc -l < "$BRANCHES_TO_PUSH")
 echo "Found $TOTAL_BRANCHES branches to sync"
 
 if [ "$TOTAL_BRANCHES" -eq 0 ]; then
     echo "All branches are already in sync!"
-    # Clean up temporary files before exit
-    rm -f "/tmp/upstream_branches_$$.txt" "/tmp/origin_branches_$$.txt" "/tmp/branches_to_push_$$.txt"
     exit 0
 fi
 
@@ -106,10 +111,7 @@ while IFS= read -r branch; do
             sleep 1
         fi
     fi
-done < "/tmp/branches_to_push_$$.txt"
-
-# Clean up temporary files
-rm -f "/tmp/upstream_branches_$$.txt" "/tmp/origin_branches_$$.txt" "/tmp/branches_to_push_$$.txt"
+done < "$BRANCHES_TO_PUSH"
 
 echo ""
 echo "========================================="

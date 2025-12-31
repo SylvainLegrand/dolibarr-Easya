@@ -61,12 +61,17 @@ If you prefer to sync manually or need to sync specific branches:
    git fetch upstream --no-tags
    ```
 
-3. **Push all branches to origin**:
+3. **Push all branches to origin** (using secure temp files):
    ```bash
-   git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | while read branch; do
+   BRANCHES_FILE=$(mktemp)
+   trap "rm -f '$BRANCHES_FILE'" EXIT
+   
+   git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' > "$BRANCHES_FILE"
+   
+   while read branch; do
        echo "Pushing $branch..."
        git push origin "upstream/$branch:refs/heads/$branch"
-   done
+   done < "$BRANCHES_FILE"
    ```
 
 ### Method 4: Using GitHub CLI
@@ -77,12 +82,17 @@ If you have GitHub CLI installed and authenticated:
 # Fetch from upstream
 git fetch upstream --no-tags
 
-# Push each branch
-git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | while read branch; do
+# Push each branch using secure temp files
+BRANCHES_FILE=$(mktemp)
+trap "rm -f '$BRANCHES_FILE'" EXIT
+
+git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' > "$BRANCHES_FILE"
+
+while read branch; do
     gh api repos/InfraS-SARL/Easya-dolibarr/git/refs \
         -f ref="refs/heads/$branch" \
         -f sha="$(git rev-parse upstream/$branch)"
-done
+done < "$BRANCHES_FILE"
 ```
 
 ## List of Branches to Sync

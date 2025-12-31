@@ -3,20 +3,34 @@
 # Push all upstream branches to origin in batches
 # This script uses git push with multiple refspecs for efficiency
 #
-# Usage: ./push-branches-batch.sh [branches_file]
-#   branches_file: Path to file containing branch names (default: /tmp/branches_to_push_clean.txt)
+# Usage: 
+#   ./push-branches-batch.sh [branches_file]
+#   cat branches_list.txt | ./push-branches-batch.sh
+#
+#   branches_file: Path to file containing branch names (optional)
+#   If no file is provided, reads from stdin
 #
 
 set -e
 
 BATCH_SIZE=50
-BRANCHES_FILE="${1:-/tmp/branches_to_push_clean.txt}"
 
-if [ ! -f "$BRANCHES_FILE" ]; then
-    echo "Error: Branches file not found: $BRANCHES_FILE"
-    echo "Please run the fetch process first or provide a valid branches file."
-    echo "Usage: $0 [branches_file]"
-    exit 1
+# Determine input source
+if [ -n "$1" ]; then
+    BRANCHES_FILE="$1"
+    if [ ! -f "$BRANCHES_FILE" ]; then
+        echo "Error: Branches file not found: $BRANCHES_FILE"
+        echo "Usage: $0 [branches_file]"
+        echo "       cat branches_list.txt | $0"
+        exit 1
+    fi
+    INPUT_SOURCE="$BRANCHES_FILE"
+else
+    # Read from stdin into a secure temp file
+    BRANCHES_FILE=$(mktemp)
+    trap "rm -f '$BRANCHES_FILE'" EXIT
+    cat > "$BRANCHES_FILE"
+    INPUT_SOURCE="stdin"
 fi
 
 TOTAL=$(wc -l < "$BRANCHES_FILE")
