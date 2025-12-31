@@ -35,8 +35,8 @@ jobs:
       - name: Get list of branches to sync
         id: branches
         run: |
-          git branch -r | grep "upstream/" | sed 's|  upstream/||' | sed 's/^[[:space:]]*//' | sort > /tmp/upstream_branches.txt
-          git branch -r | grep "origin/" | sed 's|  origin/||' | sed 's/^[[:space:]]*//' | sort > /tmp/origin_branches.txt
+          git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | sort > /tmp/upstream_branches.txt
+          git branch -r | grep "origin/" | sed 's|^[[:space:]]*origin/||' | sort > /tmp/origin_branches.txt
           comm -13 /tmp/origin_branches.txt /tmp/upstream_branches.txt > /tmp/branches_to_push.txt
           TOTAL=$(wc -l < /tmp/branches_to_push.txt)
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
