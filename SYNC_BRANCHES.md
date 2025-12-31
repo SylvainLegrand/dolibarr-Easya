@@ -78,7 +78,7 @@ If you have GitHub CLI installed and authenticated:
 git fetch upstream --no-tags
 
 # Push each branch
-git branch -r | grep "upstream/" | sed 's|  upstream/||' | while read branch; do
+git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | while read branch; do
     gh api repos/InfraS-SARL/Easya-dolibarr/git/refs \
         -f ref="refs/heads/$branch" \
         -f sha="$(git rev-parse upstream/$branch)"
@@ -102,7 +102,7 @@ A total of **403 branches** need to be synced, including:
 - Bug fix branches for specific issues
 - And many more...
 
-See `/tmp/branches_to_push_clean.txt` for the complete list.
+The complete list of branches is fetched dynamically when running the sync script.
 
 ## Verification
 

@@ -56,6 +56,8 @@ echo "Found $TOTAL_BRANCHES branches to sync"
 
 if [ "$TOTAL_BRANCHES" -eq 0 ]; then
     echo "All branches are already in sync!"
+    # Clean up temporary files before exit
+    rm -f "/tmp/upstream_branches_$$.txt" "/tmp/origin_branches_$$.txt" "/tmp/branches_to_push_$$.txt"
     exit 0
 fi
 
