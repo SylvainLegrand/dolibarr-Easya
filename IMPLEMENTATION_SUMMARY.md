@@ -76,7 +76,7 @@ The branches have been fetched locally but need to be pushed to the GitHub fork.
 git fetch upstream --no-tags
 
 # Push all branches
-git branch -r | grep "upstream/" | sed 's|  upstream/||' | sed 's/^[[:space:]]*//' | while read branch; do
+git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | while read branch; do
     git push origin "upstream/$branch:refs/heads/$branch"
 done
 ```

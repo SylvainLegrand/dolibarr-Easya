@@ -63,7 +63,7 @@ If you prefer to sync manually or need to sync specific branches:
 
 3. **Push all branches to origin**:
    ```bash
-   git branch -r | grep "upstream/" | sed 's|  upstream/||' | while read branch; do
+   git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | while read branch; do
        echo "Pushing $branch..."
        git push origin "upstream/$branch:refs/heads/$branch"
    done

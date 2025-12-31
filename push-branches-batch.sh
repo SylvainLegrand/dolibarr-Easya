@@ -3,15 +3,19 @@
 # Push all upstream branches to origin in batches
 # This script uses git push with multiple refspecs for efficiency
 #
+# Usage: ./push-branches-batch.sh [branches_file]
+#   branches_file: Path to file containing branch names (default: /tmp/branches_to_push_clean.txt)
+#
 
 set -e
 
 BATCH_SIZE=50
-BRANCHES_FILE="/tmp/branches_to_push_clean.txt"
+BRANCHES_FILE="${1:-/tmp/branches_to_push_clean.txt}"
 
 if [ ! -f "$BRANCHES_FILE" ]; then
     echo "Error: Branches file not found: $BRANCHES_FILE"
-    echo "Please run the fetch process first."
+    echo "Please run the fetch process first or provide a valid branches file."
+    echo "Usage: $0 [branches_file]"
     exit 1
 fi
 

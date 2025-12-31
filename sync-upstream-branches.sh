@@ -43,15 +43,15 @@ git fetch upstream --no-tags
 echo ""
 echo "Step 3: Getting list of branches to sync..."
 # Get list of all upstream branches
-git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | sort > /tmp/upstream_branches.txt
+git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | sort > "/tmp/upstream_branches_$$.txt"
 
 # Get list of all origin branches  
-git branch -r | grep "origin/" | sed 's|^[[:space:]]*origin/||' | sort > /tmp/origin_branches.txt
+git branch -r | grep "origin/" | sed 's|^[[:space:]]*origin/||' | sort > "/tmp/origin_branches_$$.txt"
 
 # Find branches that need to be pushed
-comm -13 /tmp/origin_branches.txt /tmp/upstream_branches.txt > /tmp/branches_to_push.txt
+comm -13 "/tmp/origin_branches_$$.txt" "/tmp/upstream_branches_$$.txt" > "/tmp/branches_to_push_$$.txt"
 
-TOTAL_BRANCHES=$(wc -l < /tmp/branches_to_push.txt)
+TOTAL_BRANCHES=$(wc -l < "/tmp/branches_to_push_$$.txt")
 echo "Found $TOTAL_BRANCHES branches to sync"
 
 if [ "$TOTAL_BRANCHES" -eq 0 ]; then
@@ -88,7 +88,7 @@ while IFS= read -r branch; do
         done
         
         # Push the batch
-        if git push origin "${refspecs[@]}" 2>&1; then
+        if git push origin "${refspecs[@]}"; then
             succeeded=$((succeeded + ${#current_batch[@]}))
             echo "  ✓ Batch $batch_num successful (${#current_batch[@]} branches)"
         else
@@ -104,7 +104,10 @@ while IFS= read -r branch; do
             sleep 1
         fi
     fi
-done < /tmp/branches_to_push.txt
+done < "/tmp/branches_to_push_$$.txt"
+
+# Clean up temporary files
+rm -f "/tmp/upstream_branches_$$.txt" "/tmp/origin_branches_$$.txt" "/tmp/branches_to_push_$$.txt"
 
 echo ""
 echo "========================================="
