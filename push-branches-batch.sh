@@ -89,3 +89,10 @@ echo "  Total: $TOTAL"
 echo "  Pushed: $pushed"
 echo "  Failed: $failed"
 
+# Exit with appropriate code
+if [ $failed -eq 0 ]; then
+    exit 0
+else
+    exit 1
+fi
+

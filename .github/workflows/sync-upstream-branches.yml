@@ -38,6 +38,7 @@ jobs:
           UPSTREAM_BRANCHES=$(mktemp)
           ORIGIN_BRANCHES=$(mktemp)
           BRANCHES_TO_PUSH=$(mktemp)
+          trap "rm -f '$UPSTREAM_BRANCHES' '$ORIGIN_BRANCHES' '$BRANCHES_TO_PUSH'" EXIT
           
           git branch -r | grep "upstream/" | sed 's|^[[:space:]]*upstream/||' | sort > "$UPSTREAM_BRANCHES"
           git branch -r | grep "origin/" | sed 's|^[[:space:]]*origin/||' | sort > "$ORIGIN_BRANCHES"
@@ -46,9 +47,6 @@ jobs:
           TOTAL=$(wc -l < "$BRANCHES_TO_PUSH")
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
           echo "Found $TOTAL branches to sync"
-          
-          # Clean up temp files
-          rm -f "$UPSTREAM_BRANCHES" "$ORIGIN_BRANCHES" "$BRANCHES_TO_PUSH"
           
       - name: Push branches in batches
         if: steps.branches.outputs.total > 0
