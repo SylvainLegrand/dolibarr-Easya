@@ -66,21 +66,43 @@ echo "This may take several minutes..."
 count=0
 failed=0
 succeeded=0
+BATCH_SIZE=50
 
+# Process branches in batches for better performance
+echo "Using batch mode with $BATCH_SIZE branches per batch..."
+
+current_batch=()
 while IFS= read -r branch; do
+    current_batch+=("$branch")
     count=$((count + 1))
     
-    # Show progress every 10 branches
-    if [ $((count % 10)) -eq 0 ]; then
-        echo "Progress: $count/$TOTAL_BRANCHES branches processed (succeeded: $succeeded, failed: $failed)"
-    fi
-    
-    # Push the branch
-    if git push origin "upstream/$branch:refs/heads/$branch" 2>&1 | grep -q "fatal"; then
-        failed=$((failed + 1))
-        echo "  [FAILED] $branch"
-    else
-        succeeded=$((succeeded + 1))
+    # When batch is full or we've reached the end, push the batch
+    if [ ${#current_batch[@]} -eq $BATCH_SIZE ] || [ $count -eq $TOTAL_BRANCHES ]; then
+        batch_num=$(( (count + BATCH_SIZE - 1) / BATCH_SIZE ))
+        echo "Pushing batch $batch_num (${#current_batch[@]} branches)..."
+        
+        # Build refspecs for this batch
+        refspecs=()
+        for b in "${current_batch[@]}"; do
+            refspecs+=("upstream/$b:refs/heads/$b")
+        done
+        
+        # Push the batch
+        if git push origin "${refspecs[@]}" 2>&1; then
+            succeeded=$((succeeded + ${#current_batch[@]}))
+            echo "  ✓ Batch $batch_num successful (${#current_batch[@]} branches)"
+        else
+            failed=$((failed + ${#current_batch[@]}))
+            echo "  ✗ Batch $batch_num failed"
+        fi
+        
+        # Reset batch
+        current_batch=()
+        
+        # Small delay to avoid rate limiting
+        if [ $count -lt $TOTAL_BRANCHES ]; then
+            sleep 1
+        fi
     fi
 done < /tmp/branches_to_push.txt
 

@@ -22,7 +22,18 @@ The branches need to be pushed to this fork. Due to authentication requirements,
 
 ## How to Sync the Branches
 
-### Method 1: Using the Provided Script (Recommended)
+### Method 1: Using GitHub Actions (Easiest)
+
+A GitHub Actions workflow has been set up to automate the syncing process:
+
+1. Go to the **Actions** tab in this repository
+2. Select the **"Sync Upstream Branches"** workflow
+3. Click **"Run workflow"**
+4. The workflow will automatically sync all branches from upstream
+
+The workflow can also be scheduled to run automatically (currently configured to run weekly on Mondays).
+
+### Method 2: Using the Provided Script (Recommended for Local Execution)
 
 Run the sync script:
 
@@ -36,7 +47,7 @@ This script will:
 - Push all upstream branches to this fork
 - Provide progress updates and a summary
 
-### Method 2: Manual Sync
+### Method 3: Manual Sync
 
 If you prefer to sync manually or need to sync specific branches:
 
@@ -58,7 +69,7 @@ If you prefer to sync manually or need to sync specific branches:
    done
    ```
 
-### Method 3: Using GitHub CLI
+### Method 4: Using GitHub CLI
 
 If you have GitHub CLI installed and authenticated:
 

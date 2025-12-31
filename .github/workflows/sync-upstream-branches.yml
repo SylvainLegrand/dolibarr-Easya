@@ -1,0 +1,57 @@
+name: Sync Upstream Branches
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+  schedule:
+    # Run once a week on Monday at 00:00 UTC (optional - comment out if not wanted)
+    - cron: '0 0 * * 1'
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to push branches
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
+          
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/Easya-Solutions/dolibarr.git || true
+          git remote set-url upstream https://github.com/Easya-Solutions/dolibarr.git
+          
+      - name: Fetch upstream branches
+        run: |
+          git fetch upstream --no-tags
+          
+      - name: Get list of branches to sync
+        id: branches
+        run: |
+          git branch -r | grep "upstream/" | sed 's|  upstream/||' | sed 's/^[[:space:]]*//' | sort > /tmp/upstream_branches.txt
+          git branch -r | grep "origin/" | sed 's|  origin/||' | sed 's/^[[:space:]]*//' | sort > /tmp/origin_branches.txt
+          comm -13 /tmp/origin_branches.txt /tmp/upstream_branches.txt > /tmp/branches_to_push.txt
+          TOTAL=$(wc -l < /tmp/branches_to_push.txt)
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "Found $TOTAL branches to sync"
+          
+      - name: Push branches in batches
+        if: steps.branches.outputs.total > 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./sync-upstream-branches.sh
+          ./sync-upstream-branches.sh
+          
+      - name: Summary
+        run: |
+          echo "## Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Total branches synced: ${{ steps.branches.outputs.total }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Sync completed successfully" >> $GITHUB_STEP_SUMMARY
